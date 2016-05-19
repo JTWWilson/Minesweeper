@@ -14,6 +14,11 @@ def createboard(x, y, mines):
 
 
 def choose(board, solution):
+    print(board)
+    print(solution)
+    if board == solution:
+        print('You have solved the mine-field!\nWell done!')
+        main()
     field = ''
     for i in board:
         for j in i:
@@ -70,8 +75,9 @@ def findadjacent(x, y, char, board):
 
 
 def main():
-    board = createboard(5, 5, [[random.randrange(0,4), random.randrange(0,4)], [random.randrange(0,4), random.randrange(0,4)], [random.randrange(0,4), random.randrange(0,4)]])
-    print(board)
+    boardsize = int(input('How big would you like the board to be? '))
+    mineno = int(input('How many mines would you like there to be? '))
+    board = createboard(boardsize, boardsize, [[random.randrange(0, boardsize), random.randrange(0, boardsize)] for i in range(0, mineno)])
     solution = [[findadjacent(x, y, 'x', board) for x in range(0, len(board[y]))] for y in range(0, len(board))]
     while True:
         board = choose(board, solution)
