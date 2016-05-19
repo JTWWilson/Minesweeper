@@ -39,5 +39,5 @@ def main():
     print(board)
     choose(board)
 
-print('Jacob')
+
 main()
