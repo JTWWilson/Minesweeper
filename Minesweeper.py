@@ -1,43 +1,80 @@
+import random
+
 def createboard(x, y, mines):
     board = []
-    for i in range(0, x):
-        column = []
-        for j in range(0, y):
-            print([i,j],mines[-1])
-            if [i, j] in mines:
-                column.append('x')
+    for i in range(0, y):
+        row = []
+        for j in range(0, x):
+            if [j, i] in mines:
+                row.append('x')
             else:
-                column.append('_')
-        board.append(column)
+                row.append('_')
+        board.append(row)
     return board
 
 
-def choose(board):
-    x = ''
+def choose(board, solution):
+    field = ''
     for i in board:
         for j in i:
-            x += '_ '
-        x += '\n'
-    print(x)
-    selection = [int(input('X axis coord '))]
-    selection.append(int(input('X axis coord ')))
-    count = bombsnear(selection[0], selection[1], board)
-    print(count)
+            if j == 'x' or j == '_':
+                field += '_ '
+            else:
+                field += str(j) + ' '
+        field += '\n'
+    print(field)
+    x = int(input('X axis coord '))
+    y = int(input('Y axis coord '))
+    count = findadjacent(x, y, 'x', board)
+    if count == 'x':
+        print('You hit a mine, game over!')
+        for i in solution:
+            print(i)
+        main()
+    board[y][x] = count
+    if count == 0:
+        board = spread(x, y, board, solution)
+    return board
 
-def bombsnear(x, y, board):
-    count = 0
+
+
+
+def spread(x, y, board, solution):
     xs = [x - 1, x, x + 1]
     ys = [y - 1, y, y + 1]
     for i in xs:
         for j in ys:
-            if board[i][j] == 'x':
+            if i > len(board[0]) - 1 or j > len(board) - 1 or i < 0 or j < 0 or (i == x and j == y):
+                continue
+            count = findadjacent(i, j, 'x', board)
+            if count == 0 and board[j][i] != count:
+                board[j][i] = count
+                board = spread(i, j, board, solution)
+            board[j][i] = count
+    return board
+
+
+def findadjacent(x, y, char, board):
+    count = 0
+    xs = [x - 1, x, x + 1]
+    ys = [y - 1, y, y + 1]
+    if board[y][x] == 'x':
+        return 'x'
+    for i in xs:
+        for j in ys:
+            if i > len(board[0]) - 1 or j > len(board) - 1 or i < 0 or j < 0:
+                continue
+            elif board[j][i] == char:
                 count += 1
     return count
 
+
 def main():
-    board = createboard(5, 5, [[0, 0],[1, 1], [2, 2]])
+    board = createboard(5, 5, [[random.randrange(0,4), random.randrange(0,4)], [random.randrange(0,4), random.randrange(0,4)], [random.randrange(0,4), random.randrange(0,4)]])
     print(board)
-    choose(board)
+    solution = [[findadjacent(x, y, 'x', board) for x in range(0, len(board[y]))] for y in range(0, len(board))]
+    while True:
+        board = choose(board, solution)
 
 
 main()
