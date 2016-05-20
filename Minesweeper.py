@@ -14,8 +14,8 @@ def createboard(x, y, mines):
 
 
 def choose(board, solution):
-    print(board)
-    print(solution)
+    #print(board)
+    #print(solution)
     if board == solution:
         print('You have solved the mine-field!\nWell done!')
         main()
