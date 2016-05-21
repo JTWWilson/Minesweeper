@@ -1,4 +1,17 @@
 import random
+import pygame
+
+# Define some colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+gridwidth = 50
+gridheight = 50
+margin = 5
+FONT = 'Calibri'
+TEXTSIZE = 70
+
 
 def createboard(x, y, mines):
     board = []
@@ -13,7 +26,7 @@ def createboard(x, y, mines):
     return board
 
 
-def choose(board, solution):
+def choose(board, solution, y, x):
     #print(board)
     #print(solution)
     if board == solution:
@@ -28,8 +41,6 @@ def choose(board, solution):
                 field += str(j) + ' '
         field += '\n'
     print(field)
-    x = int(input('X axis coord '))
-    y = int(input('Y axis coord '))
     count = findadjacent(x, y, 'x', board)
     if count == 'x':
         print('You hit a mine, game over!')
@@ -40,7 +51,6 @@ def choose(board, solution):
     if count == 0:
         board = spread(x, y, board, solution)
     return board
-
 
 
 
@@ -72,15 +82,57 @@ def findadjacent(x, y, char, board):
             elif board[j][i] == char:
                 count += 1
     return count
+#circle(Surface, color, pos, radius, width=0)
+#pygame.draw.circle(screen, BLUE, )
 
 
 def main():
     boardsize = int(input('How big would you like the board to be? '))
     mineno = int(input('How many mines would you like there to be? '))
+    pygame.init()
+
+    WINDOW_SIZE = [(gridwidth * boardsize) + (margin * boardsize + 4),
+               (gridheight * boardsize) + (margin * boardsize + 4)]
+    screen = pygame.display.set_mode(WINDOW_SIZE)
+    # Set title of screen
+    pygame.display.set_caption("Minesweeper")
+    running = True
+    clock = pygame.time.Clock()
+
     board = createboard(boardsize, boardsize, [[random.randrange(0, boardsize), random.randrange(0, boardsize)] for i in range(0, mineno)])
     solution = [[findadjacent(x, y, 'x', board) for x in range(0, len(board[y]))] for y in range(0, len(board))]
-    while True:
-        board = choose(board, solution)
-
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # User clicks the mouse. Get the position
+                pos = pygame.mouse.get_pos()
+                # Change the x/y screen coordinates to grid coordinates
+                column = abs(pos[0] - margin) // (gridwidth + margin)
+                row = abs(pos[1] - margin) // (gridheight + margin)
+                print("Click ", pos, "Grid coordinates: ", row, column)
+                board = choose(board, solution, row, column)
+        screen.fill(BLACK)
+        for row in range(boardsize):
+            for column in range(boardsize):
+                for i in range(0, 8):
+                    if board[row][column] == i:
+                        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
+                        text = font.render(str(i), True, WHITE)
+                        screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
+                if board[row][column] == '_' or board[row][column] == 'x':
+                    pygame.draw.rect(screen,
+                                 WHITE,
+                                 [(margin + gridwidth) * column + margin,
+                                  (margin + gridheight) * row + margin,
+                                  gridwidth,
+                                  gridheight])
+        clock.tick(60)
+        pygame.display.flip()
+    pygame.quit()
 
 main()
