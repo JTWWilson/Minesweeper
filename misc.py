@@ -26,18 +26,27 @@ def get_key():
 
 def display_box(screen, message):
     "Print a message in a box in the middle of the screen"
+    screen.fill((0, 0, 0))
     fontobject = pygame.font.Font(None, 18)
+    fontwidth = pygame.font.Font.size(fontobject, message)[0]
+    fontheight = pygame.font.Font.size(fontobject, message)[1]
     pygame.draw.rect(screen, (0, 0, 0),
-                     ((screen.get_width() / 2) - 100,
-                      (screen.get_height() / 2) - 10,
-                      200, 20), 0)
-    pygame.draw.rect(screen, (255, 255, 255),
-                     ((screen.get_width() / 2) - 102,
-                      (screen.get_height() / 2) - 12,
-                      204, 24), 1)
+                     (((screen.get_width() / 2 )- fontwidth / 2) - 4,
+                      ((screen.get_height() / 2 )- fontheight) - 4,
+                      fontwidth + 3,
+                      fontheight + 3),
+                     0)
+    pygame.draw.rect(screen,
+                    (255, 255, 255),
+                        (((screen.get_width() / 2 )- fontwidth / 2) - 4,
+                        ((screen.get_height() / 2 )- fontheight) - 4,
+                        fontwidth + 5,
+                        fontheight + 5),
+                     1)
     if len(message) != 0:
         screen.blit(fontobject.render(message, 1, (255, 255, 255)),
-                    ((screen.get_width() / 2) - 100, (screen.get_height() / 2) - 10))
+                    ((screen.get_width() / 2) - fontwidth / 2,
+                     (screen.get_height() / 2) - fontheight))
     pygame.display.flip()
 
 
@@ -48,20 +57,20 @@ def ask(screen, question):
     display_box(screen, question + ": ")
     while 1:
         inkey = get_key()
-        if inkey == 'K_BACKSPACE':
+        if inkey == 8:
             current_string = current_string[0:-1]
-        elif inkey == 'K_RETURN':
+        elif inkey == 13:
             break
         elif inkey <= 127:
             current_string.append(chr(inkey))
         display_box(screen, question + ": " + ''.join(current_string))
-    return string.join(current_string, "")
+    return ''.join(current_string)
 
 
-def main():
-    screen = pygame.display.set_mode((320, 240))
-    print(ask(screen, "Name") + " was entered")
+# def main():
+#    screen = pygame.display.set_mode((320, 240))
+#    print(ask(screen, "Name") + " was entered")
 
 
-while True:
-    main()
+# while True:
+#    main()

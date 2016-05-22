@@ -1,5 +1,7 @@
 import random
 import pygame
+import misc
+
 
 # Colours
 BLACK = (0, 0, 0)
@@ -92,7 +94,9 @@ def main():
    # boardsize = int(input('How big would you like the board to be? '))
    # mineno = int(input('How many mines would you like there to be? '))
     pygame.init()
-
+    screen = pygame.display.set_mode((600, 250))
+    boardsize = int(misc.ask(screen, 'How big would you like the board to be? '))
+    mineno = int(misc.ask(screen, 'How many mines would you like there to be? '))
     WINDOW_SIZE = [(gridwidth * boardsize) + (margin * boardsize + 4),
                (gridheight * boardsize) + (margin * boardsize + 4)]
     screen = pygame.display.set_mode(WINDOW_SIZE)
