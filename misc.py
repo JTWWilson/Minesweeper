@@ -12,6 +12,8 @@
 #
 # Only near the center of the screen is blitted to
 
+# Updated by Jacob Wilson 22/5/16 into python 3.5 and adapted for my own purpose
+
 import pygame
 
 
@@ -20,6 +22,8 @@ def get_key():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 return event.key
+            elif event.type == pygame.QUIT:
+                pygame.quit()
             else:
                 pass
 
@@ -31,16 +35,16 @@ def display_box(screen, message):
     fontwidth = pygame.font.Font.size(fontobject, message)[0]
     fontheight = pygame.font.Font.size(fontobject, message)[1]
     pygame.draw.rect(screen, (0, 0, 0),
-                     (((screen.get_width() / 2 )- fontwidth / 2) - 4,
-                      ((screen.get_height() / 2 )- fontheight) - 4,
-                      fontwidth + 3,
-                      fontheight + 3),
+                     ((screen.get_width() / 2 )- fontwidth / 2 - 4,
+                      (screen.get_height() / 2 )- fontheight - 4,
+                      fontwidth + 15,
+                      fontheight + 5),
                      0)
     pygame.draw.rect(screen,
                     (255, 255, 255),
-                        (((screen.get_width() / 2 )- fontwidth / 2) - 4,
+                        (((screen.get_width() / 2 )- fontwidth / 2 - 4),
                         ((screen.get_height() / 2 )- fontheight) - 4,
-                        fontwidth + 5,
+                        fontwidth + 15,
                         fontheight + 5),
                      1)
     if len(message) != 0:

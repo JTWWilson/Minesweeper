@@ -105,7 +105,8 @@ def main():
     running = True
     clock = pygame.time.Clock()
     colours = [WHITE, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, GREY]
-    board = createboard(boardsize, boardsize, [[random.randrange(0, boardsize), random.randrange(0, boardsize)] for i in range(0, mineno)])
+    board = createboard(boardsize, boardsize,
+                        [[random.randrange(0, boardsize), random.randrange(0, boardsize)] for i in range(0, mineno)])
     solution = [[findadjacent(x, y, 'x', board) for x in range(0, len(board[y]))] for y in range(0, len(board))]
     while running:
         for event in pygame.event.get():
@@ -131,13 +132,27 @@ def main():
                                           gridheight])
                     else:
                         font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-                        text = font.render(str(solution[row][column]), True, colours[solution[row][column]])
+                        text = font.render(str(solution[row][column]), True, tuple(i + 100 if i < 155 else i - 50 if i > 50 else i for i in colours[solution[row][column]]))
                         screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
                                        (margin + gridheight) * row,
                                        gridwidth,
                                        gridheight])
             pygame.display.flip()
-            main()
+            if board == 'x':
+                font = pygame.font.SysFont(FONT, 50, True, False)
+                text = font.render('GAME OVER!', True, BLACK)
+                pygame.draw.rect(screen, GREY,
+                                 (WINDOW_SIZE[0] / 2 - pygame.font.Font.size(font, 'GAME OVER!')[0] / 2,
+                                  WINDOW_SIZE[1] / 2 - pygame.font.Font.size(font, 'GAME OVER!')[1] / 2,
+                                  pygame.font.Font.size(font, 'GAME OVER!')[0],
+                                  pygame.font.Font.size(font, 'GAME OVER!')[1] - 5,
+                                  ))
+                screen.blit(text, (WINDOW_SIZE[0] / 2 - pygame.font.Font.size(font, 'GAME OVER!')[0] / 2,
+                                   WINDOW_SIZE[1] / 2 - pygame.font.Font.size(font, 'GAME OVER!')[1] / 2))
+                pygame.display.flip()
+                while True:
+                    pass
+            continue
         for row in range(boardsize):
             for column in range(boardsize):
                 for i in range(0, 8):
