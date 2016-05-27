@@ -24,6 +24,7 @@ def get_key():
                 return event.key
             elif event.type == pygame.QUIT:
                 pygame.quit()
+                quit()
             else:
                 pass
 

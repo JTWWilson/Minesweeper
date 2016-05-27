@@ -13,11 +13,15 @@ BLUE = (0, 0, 255)
 DARKBLUE = (0, 16, 117)
 CRIMSON = (148, 0, 0)
 VIOLET = (186, 4, 138)
+# Game dimensions
 gridwidth = 50
 gridheight = 50
 margin = 3
+# Fonts
 FONT = 'Calibri'
 TEXTSIZE = 70
+# Images
+mineload = pygame.image.load('Images/Mine.bmp')
 
 
 def createboard(x, y, mines):
@@ -83,6 +87,17 @@ def findadjacent(x, y, char, board):
     return count
 
 
+def flag(x, y, board):
+    for i in board:
+        for j in i:
+            if j[0] == 'x' or j[0] == '_':
+                if len(j) == 3:
+                    del j[2]
+                else:
+                    j.append('f')
+    return board
+
+
 def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=float('inf')):
     """
     It takes in a question to ask the user, asks it, checks if it is a valid input
@@ -127,16 +142,16 @@ def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=f
 
 
 def main():
-    # boardsize = int(input('How big would you like the board to be? '))
-    # mineno = int(input('How many mines would you like there to be? '))
     pygame.init()
     screen = pygame.display.set_mode((600, 250))
     boardx = checkinput(screen, 'How wide would you like the board to be? ', int, startrange=0, endrange=40)
     boardy = checkinput(screen, 'How long would you like the board to be? ', int, startrange=0, endrange=15)
-    mineno = checkinput(screen, 'How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
+    mineno = \
+        checkinput(screen, 'How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
     window_size = [(gridwidth * boardx) + (margin * boardx + 4),
                    (gridheight * boardy) + (margin * boardy + 4)]
     screen = pygame.display.set_mode(window_size)
+    mine = mineload.convert()
     # Set title of screen
     pygame.display.set_caption("Minesweeper")
     running = True
@@ -153,9 +168,6 @@ def main():
     for i in range(0, len(board)):
         for j in range(0, len(board[i])):
             board[i][j].append(findadjacent(j, i, 'x', board))
-    #for i in board:
-    #    print(i)
-    # solution = [[[findadjacent(x, y, 'x', board)] for x in range(0, len(board[y]))] for y in range(0, len(board))]
     while running:
         temp = ''
         for event in pygame.event.get():
@@ -164,35 +176,21 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # User clicks the mouse. Get the position
                 pos = pygame.mouse.get_pos()
-                # Change the x/y screen coordinates to grid coordinates#
+                # Change the x/y screen coordinates to grid coordinates
                 column = abs(pos[0] - margin) // (gridwidth + margin)
                 row = abs(pos[1] - margin) // (gridheight + margin)
-                temp = choose(board, row, column)
-                if temp != 'x':
-                    board = temp
+                if event.button == 1:
+                    print(board[row][column])
+                    if len(board[row][column]) != 3:
+                        temp = choose(board, row, column)
+                        if temp != 'x':
+                            board = temp
+                elif event.button == 3:
+                    board = flag(row, column, board)
         screen.fill(WHITE)
- #           board = createboard(boardx, boardy, mines)
-#    solution = [[findadjacent(x, y, 'x', board) for x in range(0, len(board[y]))] for y in range(0, len(board))]
-       # print([[j[0] for j in i] for i in board])
-        #test = []
-        #for i in board:
-        #    for j in i:
-        #        test.append(j[0])
-        #test = [[j[0] for j in i] for i in board]
-        #print(test)
-        #boardcheck = []
-        #for i in board:
-        #    for j in i:
-        #        boardcheck.append(j[0])
-        #print(boardcheck)
         if temp == 'x' or [[j[0] for j in i] for i in board] == [[j[1] for j in i] for i in board]:
-            mine = pygame.image.load('Images/Mine.bmp')
-            mine = mine.convert()
             for row in range(0, boardy):
                 for column in range(0, boardx):
-                    #print(str(boardx) + '\n' + str(boardy) + 'test')
-                    #print(str(row) + '\n' + str(column) + 'test')
-                    #print('square : ' + '_'.join(str(board[row][column])))
                     if board[row][column][0] == 'x':
                         screen.blit(mine, [(margin + gridwidth) * column + margin * 2,
                                            (margin + gridheight) * row + margin * 3,
@@ -208,7 +206,6 @@ def main():
                                            gridwidth,
                                            gridheight])
             pygame.display.flip()
-            #print(board)
             if temp == 'x':
                 message = 'GAME OVER!'
             elif [[j[0] for j in i] for i in board] == [[j[1] for j in i] for i in board]:
