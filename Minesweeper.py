@@ -22,6 +22,8 @@ FONT = 'Calibri'
 TEXTSIZE = 70
 # Images
 mineload = pygame.image.load('Images/Mine.bmp')
+tileload = pygame.image.load('Images/Tile.bmp')
+flagload = pygame.image.load('Images/Flag.bmp')
 
 
 def createboard(x, y, mines):
@@ -87,7 +89,7 @@ def findadjacent(x, y, char, board):
     return count
 
 
-def flag(x, y, board):
+def flagsquare(x, y, board):
     for i in board:
         for j in i:
             if j[0] == 'x' or j[0] == '_':
@@ -152,6 +154,8 @@ def main():
                    (gridheight * boardy) + (margin * boardy + 4)]
     screen = pygame.display.set_mode(window_size)
     mine = mineload.convert()
+    tile = tileload.convert()
+    flag = flagload.convert()
     # Set title of screen
     pygame.display.set_caption("Minesweeper")
     running = True
@@ -186,13 +190,23 @@ def main():
                         if temp != 'x':
                             board = temp
                 elif event.button == 3:
-                    board = flag(row, column, board)
+                    board = flagsquare(row, column, board)
         screen.fill(WHITE)
         if temp == 'x' or [[j[0] for j in i] for i in board] == [[j[1] for j in i] for i in board]:
             for row in range(0, boardy):
                 for column in range(0, boardx):
                     if board[row][column][0] == 'x':
                         screen.blit(mine, [(margin + gridwidth) * column + margin * 2,
+                                           (margin + gridheight) * row + margin * 3,
+                                           gridwidth,
+                                           gridheight])
+                    elif 'len(board[row][column]) == 3' :
+                        screen.blit(tile, [(margin + gridwidth) * column + margin * 2,
+                                           (margin + gridheight) * row + margin * 3,
+                                           gridwidth,
+                                           gridheight])
+                    if len(board[row][column]) == 3 :
+                        screen.blit(flag, [(margin + gridwidth) * column + margin * 2,
                                            (margin + gridheight) * row + margin * 3,
                                            gridwidth,
                                            gridheight])
