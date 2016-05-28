@@ -5,7 +5,7 @@ import misc
 # Colours
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREY = (190, 190, 190)
+GREY = (185, 185, 185)
 CYAN = (26, 184, 237)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -90,13 +90,11 @@ def findadjacent(x, y, char, board):
 
 
 def flagsquare(x, y, board):
-    for i in board:
-        for j in i:
-            if j[0] == 'x' or j[0] == '_':
-                if len(j) == 3:
-                    del j[2]
+    if board[x][y][0] == 'x' or board[x][y][0] == '_':
+                if len(board[x][y]) == 3:
+                    del board[x][y][2]
                 else:
-                    j.append('f')
+                    board[x][y].append('f')
     return board
 
 
@@ -139,7 +137,7 @@ def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=f
         # explain that they must input yes or no
         except KeyError:
             print('Input is not Yes or No')
-        # Restart because of the exception
+            # Restart because of the exception
     return answer
 
 
@@ -160,7 +158,7 @@ def main():
     pygame.display.set_caption("Minesweeper")
     running = True
     clock = pygame.time.Clock()
-    colours = [WHITE, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, GREY]
+    colours = [GREY, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, WHITE]
     mines = []
     coords = []
     for i in range(mineno):
@@ -184,15 +182,19 @@ def main():
                 column = abs(pos[0] - margin) // (gridwidth + margin)
                 row = abs(pos[1] - margin) // (gridheight + margin)
                 if event.button == 1:
-                    print(board[row][column])
                     if len(board[row][column]) != 3:
                         temp = choose(board, row, column)
                         if temp != 'x':
                             board = temp
                 elif event.button == 3:
                     board = flagsquare(row, column, board)
-        screen.fill(WHITE)
-        if temp == 'x' or [[j[0] for j in i] for i in board] == [[j[1] for j in i] for i in board]:
+        screen.fill(GREY)
+        flagged = 0
+        for i in board:
+            for j in i:
+                if len(j) == 3 and j[1] == 'x':
+                   flagged +=1
+        if temp == 'x' or flagged == mineno:
             for row in range(0, boardy):
                 for column in range(0, boardx):
                     if board[row][column][0] == 'x':
@@ -200,29 +202,30 @@ def main():
                                            (margin + gridheight) * row + margin * 3,
                                            gridwidth,
                                            gridheight])
-                    elif 'len(board[row][column]) == 3' :
-                        screen.blit(tile, [(margin + gridwidth) * column + margin * 2,
+                    else:
+                        if board[row][column][0] == '_':
+                            screen.blit(tile, [(margin + gridwidth) * column + margin * 2,
                                            (margin + gridheight) * row + margin * 3,
                                            gridwidth,
                                            gridheight])
-                    if len(board[row][column]) == 3 :
+                        else:
+                            font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
+                            text = font.render(str(board[row][column][1]), True, tuple(
+                                i + 100 if i < 155 else i - 50 if i > 50 else i for i in colours[board[row][column][1]]))
+                            screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
+                                           (margin + gridheight) * row,
+                                           gridwidth,
+                                           gridheight])
+                    if len(board[row][column]) == 3:
                         screen.blit(flag, [(margin + gridwidth) * column + margin * 2,
                                            (margin + gridheight) * row + margin * 3,
                                            gridwidth,
                                            gridheight])
-                    else:
-                        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-                        text = font.render(str(board[row][column][1]), True, tuple(
-                                i + 100 if i < 155 else i - 50 if i > 50 else i for i in
-                                colours[board[row][column][1]]))
-                        screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
-                                           (margin + gridheight) * row,
-                                           gridwidth,
-                                           gridheight])
+
             pygame.display.flip()
             if temp == 'x':
                 message = 'GAME OVER!'
-            elif [[j[0] for j in i] for i in board] == [[j[1] for j in i] for i in board]:
+            elif flagged == mineno:
                 message = 'YOU WIN!'
             font = pygame.font.SysFont(FONT, 50, True, False)
             text = font.render(message, True, BLACK)
@@ -244,22 +247,24 @@ def main():
                         main()
         for row in range(boardy):
             for column in range(boardx):
-                for i in range(0, 8):
-                    if board[row][column][0] == i:
-                        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-                        text = font.render(str(i), True, colours[i])
-                        screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
-                                           (margin + gridheight) * row,
-                                           gridwidth,
-                                           gridheight])
-                if board[row][column][0] == '_' or board[row][column][0] == 'x':
-                    pygame.draw.rect(screen,
-                                     GREY,
-                                     [(margin + gridwidth) * column + margin,
-                                      (margin + gridheight) * row + margin,
-                                      gridwidth,
-                                      gridheight])
-        clock.tick(60)
+                if board[row][column][0] in ['_','x']:
+                    screen.blit(tile, [(margin + gridwidth) * column + margin * 2,
+                                       (margin + gridheight) * row + margin * 3,
+                                       gridwidth,
+                                       gridheight])
+                else:
+                    font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
+                    text = font.render(str(board[row][column][1]), True, colours[board[row][column][1]])
+                    screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
+                if len(board[row][column]) == 3:
+                    screen.blit(flag, [(margin + gridwidth) * column + margin * 2,
+                                       (margin + gridheight) * row + margin * 3,
+                                       gridwidth,
+                                       gridheight])
+        clock.tick(80)
         pygame.display.flip()
     pygame.quit()
 
