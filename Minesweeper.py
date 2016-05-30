@@ -2,6 +2,7 @@ import random
 import pygame
 import misc
 
+
 # Colours
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
