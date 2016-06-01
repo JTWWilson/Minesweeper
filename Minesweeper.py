@@ -24,7 +24,7 @@ TEXTSIZE = 70
 mineload = pygame.image.load('Images/Mine.bmp')
 tileload = pygame.image.load('Images/Tile.bmp')
 flagload = pygame.image.load('Images/Flag.bmp')
-
+wronglyflaggedload = pygame.image.load('Images/WronglyFlagged.bmp')
 
 
 
@@ -41,9 +41,9 @@ def createboard(x, y, mines):
         row = []
         for j in range(0, x):
             if [j, i] in mines:
-                row.append(['x'])
+                row.append({'display': '_', 'solution': 'x', 'flagged': False, 'pressed': False})
             else:
-                row.append(['_'])
+                row.append({'display': '_', 'solution': '', 'flagged': False, 'pressed': False})
         board.append(row)
     return board
 
@@ -69,9 +69,9 @@ def choose(board, y, x):
     """
     count = findadjacent(board, x, y, 'x')
     # Works out how many bombs are adjacent to the square
-    if board[y][x][0] == 'x':
+    if board[y][x]['solution'] == 'x':
         return 'x'
-    board[y][x][0] = count
+    board[y][x]['display'] = count
     if count == 0:
         board = spread(board, x, y)
         # Runs the zero recursion function if they select a 0
@@ -94,10 +94,10 @@ def spread(board, x, y):
             if i > len(board[0]) - 1 or j > len(board) - 1 or i < 0 or j < 0 or (i == x and j == y):
                 continue
             count = findadjacent(board, i, j, 'x')
-            if count == 0 and board[j][i][0] != count:
-                board[j][i][0] = count
+            if count == 0 and board[j][i]['display'] != count:
+                board[j][i]['display'] = count
                 board = spread(board, i, j)
-            board[j][i][0] = count
+            board[j][i]['display'] = count
     return board
 
 
@@ -113,13 +113,13 @@ def findadjacent(board, x, y, char):
     count = 0
     xs = [x - 1, x, x + 1]
     ys = [y - 1, y, y + 1]
-    if board[y][x][0] == 'x':
+    if board[y][x]['solution'] == 'x':
         return 'x'
     for i in xs:
         for j in ys:
             if i > len(board[0]) - 1 or j > len(board) - 1 or i < 0 or j < 0 or (i == x and j == y):
                 continue
-            elif board[j][i][0] == char:
+            elif board[j][i]['solution'] == char:
                 count += 1
     return count
 
@@ -132,11 +132,11 @@ def flagsquare(board, x, y):
     :param x: The x coordinate of the zero
     :return: The board's new state
     """
-    if board[x][y][0] == 'x' or board[x][y][0] == '_':
-        if len(board[x][y]) == 3:
-            del board[x][y][2]
+    if board[x][y]['display'] == '_':
+        if board[x][y]['flagged'] == True:
+            board[x][y]['flagged'] = False
         else:
-            board[x][y].append('f')
+            board[x][y]['flagged'] = True
     return board
 
 
@@ -183,19 +183,24 @@ def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=f
     return answer
 
 
-def showboard(screen, board, width, height, layer=0):
+def showboard(screen, board, width, height, layer='display'):
     colours = (GREY, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, WHITE)
-    if layer == 1:
+    if layer == 'solution':
         colours = tuple(([i + 100 if i < 155 else i - 50 if i > 50 else i for i in colour] for colour in colours))
     for row in range(height):
         for column in range(width):
-            if board[row][column][layer] in ['_', 'x']:
-                if layer == 1:
+            if board[row][column][layer] == 'x':
+                if layer == 'solution':
                     screen.blit(mine, [(margin + gridwidth) * column,
                                        (margin + gridheight) * row,
                                        gridwidth,
                                        gridheight])
-                elif layer == 0:
+                elif layer == 'display':
+                    screen.blit(tile, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
+            elif board[row][column][layer] == '_' and layer == 'display':
                     screen.blit(tile, [(margin + gridwidth) * column,
                                        (margin + gridheight) * row,
                                        gridwidth,
@@ -207,11 +212,17 @@ def showboard(screen, board, width, height, layer=0):
                                    (margin + gridheight) * row - margin * 2,
                                    gridwidth,
                                    gridheight])
-            if len(board[row][column]) == 3:
-                screen.blit(flag, [(margin + gridwidth) * column,
-                                   (margin + gridheight) * row,
-                                   gridwidth,
-                                   gridheight])
+            if board[row][column]['flagged'] == True:
+                if layer == 'display' or (layer == 'solution' and board[row][column]['solution'] == 'x'):
+                    screen.blit(flag, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
+                elif layer == 'solution' and board[row][column]['solution'] != 'x':
+                    screen.blit(wronglyflagged, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
 
 
 def main():
@@ -232,10 +243,11 @@ def main():
     board = createboard(boardx, boardy, mines)
     for i in range(0, len(board)):
         for j in range(0, len(board[i])):
-            board[i][j].append(findadjacent(board, j, i, 'x'))
+            board[i][j]['solution'] = findadjacent(board, j, i, 'x')
     while running:
         temp = ''
         for event in pygame.event.get():
+            #print(event)
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -245,15 +257,17 @@ def main():
                 column = abs(pos[0] - margin) // (gridwidth + margin)
                 row = abs(pos[1] - margin) // (gridheight + margin)
                 if event.button == 1:
+                    board[row][column]['pressed'] = True
                     pygame.draw.rect(screen, GREY,
-                                     ((margin + gridwidth) * column + margin * 2,
-                                      (margin + gridheight) * row + margin * 3,
-                                      gridwidth,
-                                      gridheight,
+                                     ((margin + gridwidth) * column,
+                                      (margin + gridheight) * row,
+                                      gridwidth + margin,
+                                      gridheight + margin,
                                       ))
                     pygame.display.flip()
-                    while not pygame.event.peek(pygame.MOUSEBUTTONDOWN) == False: pygame.display.flip()
-                    if len(board[row][column]) != 3:
+            #elif event.type == pygame.MOUSEBUTTONUP:
+                #if event.button == 1:
+                    if board[row][column]['flagged'] == False:
                         temp = choose(board, row, column)
                         if temp != 'x':
                             board = temp
@@ -263,9 +277,10 @@ def main():
         flagged = 0
         for i in board:
             for j in i:
-                if len(j) == 3 and j[1] == 'x':
+                if j['flagged'] == True and j['solution'] == 'x':
                     flagged += 1
         if temp == 'x' or flagged == mineno:
+            """
             for row in range(0, boardy):
                 for column in range(0, boardx):
                     if board[row][column][0] == 'x':
@@ -295,8 +310,9 @@ def main():
                                            gridheight])
 
             pygame.display.flip()
+            """
             screen.fill(GREY)
-            showboard(screen, board, boardy, boardx, True)
+            showboard(screen, board, boardy, boardx, 'solution')
             if temp == 'x':
                 message = 'GAME OVER!'
             elif flagged == mineno:
@@ -337,6 +353,7 @@ screen = pygame.display.set_mode(window_size)
 mine = mineload.convert()
 tile = tileload.convert()
 flag = flagload.convert()
+wronglyflagged = wronglyflaggedload.convert()
 # Set title of screen
 pygame.display.set_caption("Minesweeper")
 
