@@ -223,9 +223,6 @@ def showface(board, extra, width, height, depth, face, layer='display'):
                     'left': [depth, height, width],
                     'top': [width, depth, height],
                     'bottom': [width, depth, height]}
-   # print(orientations[face][1])
-    #try:
-    #print(orientations[face])
     for x in range(orientations[face][1]):
         for y in range(orientations[face][0]):
             show = 0
@@ -243,15 +240,7 @@ def showface(board, extra, width, height, depth, face, layer='display'):
                                gridwidth,
                                gridheight])
     pygame.display.flip()
-    #except IndexError:
-     #   print('IndexError')
-      #  l = [width, height, depth]
-       # for i in range(len(l)):
-        #    print(l[i])
-         #   print(orientations[face][i])
-        #print(board[x][y])
-        #print(board[x][y][show])
-        #quit()
+
 
 def showtile(board, x, y, z, layer):
     """
@@ -300,6 +289,10 @@ def showtile(board, x, y, z, layer):
                                          (margin + gridheight) * y,
                                          gridwidth,
                                          gridheight])
+
+
+def show3d():
+    pass
 
 
 def main():
