@@ -23,7 +23,6 @@ def get_key():
             if event.type == pygame.KEYDOWN:
                 return event.key
             elif event.type == pygame.QUIT:
-                pygame.quit()
                 quit()
             else:
                 pass
