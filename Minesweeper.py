@@ -358,8 +358,9 @@ def main():
                     face = faces[int(chr(event.key)) - 1]
                     print(face)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                # User clicks the mouse. Get the position
-                pos = pygame.mouse.get_pos()
+                # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
+                # change as the mouse changes, messing up which square is selected
+                pos = tuple((int(i) for i in pygame.mouse.get_pos()))
                 if pos[1] < (gridheight + margin) * boardy and pos[0] < (gridwidth + margin) * boardx: #ToDo: Change depending on face
                     # Change the x/y screen coordinates to grid coordinates
                     column = abs(pos[0] - margin) // (gridwidth + margin)
