@@ -1,4 +1,10 @@
-class Node:
+import math
+
+
+class Vertex:
+    """
+    Defines a vertex which holds its x, y and z coordinates
+    """
     def __init__(self, coordinates):
         self.x = coordinates[0]
         self.y = coordinates[1]
@@ -6,58 +12,111 @@ class Node:
 
 
 class Edge:
+    """
+    Defines an edge which holds its starting and stopping points
+    """
     def __init__(self, start, stop):
         self.start = start
         self.stop = stop
 
 
 class Wireframe:
-    def __init__(self):
-        self.nodes = []
+    """
+    A wireframe object that has a given number of vertices and a given number of edges
+    """
+    def __init__(self, vertices=(), edges=()):
+        """
+        Defines the wireframe, with vertices and edges if necessary
+        :param vertices: The wireframe's vertices
+        :param edges: The wireframe's edges
+        """
+        self.vertices = []
         self.edges = []
+        if len(vertices) > 0:
+            self.addvertices(vertices)
+        if len(edges) > 0:
+            self.addedges(edges)
 
-    def addNodes(self, nodelist):
-        for node in nodelist:
-            self.nodes.append(Node(node))
+    def addvertices(self, vertexlist):
+        """
+        Allows the program to add in a given number of vertices
+        :param vertexlist: The list of vertices to be added
+        """
+        for vertex in vertexlist:
+            self.vertices.append(Vertex(vertex))
 
-    def addEdges(self, edgelist):
+    def addedges(self, edgelist):
+        """
+        Allows the program to add in a given number of vertices
+        :param edgelist: The list of edges to be added
+        """
         for (start, stop) in edgelist:
-            self.edges.append(Edge(self.nodes[start], self.nodes[stop]))
-
-    def outputNodes(self):
-        print("\n --- Nodes --- ")
-        for i, node in enumerate(self.nodes):
-            print(" %d: (%.2f, %.2f, %.2f)" % (i, node.x, node.y, node.z))
-
-    def outputEdges(self):
-        print("\n --- Edges --- ")
-        for i, edge in enumerate(self.edges):
-            print(" %d: (%.2f, %.2f, %.2f)" % (i, edge.start.x, edge.start.y, edge.start.z))
-            print("to (%.2f, %.2f, %.2f)" % (edge.stop.x, edge.stop.y, edge.stop.z))
+            self.edges.append(Edge(self.vertices[start], self.vertices[stop]))
 
     def translate(self, axis, d):
-        """ Add constant 'd' to the coordinate 'axis' of each node of a wireframe """
+        """
+        Translate each vertex of a wireframe by 'd' in the given axis, 'axis'
+        :param axis: The axis in which the wireframe is translated
+        :param d: The amount by which the wireframe is translated
+        """
 
         if axis in ['x', 'y', 'z']:
-            for node in self.nodes:
-                setattr(node, axis, getattr(node, axis) + d)
+            for vertex in self.vertices:
+                setattr(vertex, axis, getattr(vertex, axis) + d)
 
-    def scale(self, centres, scale):
-        """ Scale the wireframe from the centre of the screen """
+    #def scale(self, centres, scale):
+    #    """"""
+    #    """ Scale the wireframe from the centre of the screen """
+    #
+    #    for vertex in self.vertices:
+    #        vertex.x = centres[0] + scale * (vertex.x - centres[0])
+    #        vertex.y = centres[1] + scale * (vertex.y - centres[1])
+    #        vertex.z *= scale
 
-        for node in self.nodes:
-            node.x = centres[0] + scale * (node.x - centres[0])
-            node.y = centres[1] + scale * (node.y - centres[1])
-            node.z *= scale
+    def findcentre(self):
+        """ Find the centre of the wireframe. """
 
+        num_vertices = len(self.vertices)
+        meanx = sum([vertex.x for vertex in self.vertices]) / num_vertices
+        meany = sum([vertex.y for vertex in self.vertices]) / num_vertices
+        meanz = sum([vertex.z for vertex in self.vertices]) / num_vertices
+
+        return meanx, meany, meanz
+
+    def rotatex(self, centres, radians):
+        for vertex in self.vertices:
+            y = vertex.y - centres[1]
+            z = vertex.z - centres[2]
+            d = math.hypot(y, z)
+            theta = math.atan2(y, z) + radians
+            vertex.z = centres[2] + d * math.cos(theta)
+            vertex.y = centres[1] + d * math.sin(theta)
+
+    def rotatey(self, centres, radians):
+        for vertex in self.vertices:
+            x = vertex.x - centres[0]
+            z = vertex.z - centres[2]
+            d = math.hypot(x, z)
+            theta = math.atan2(x, z) + radians
+            vertex.z = centres[2] + d * math.cos(theta)
+            vertex.x = centres[0] + d * math.sin(theta)
+
+    def rotatez(self, centres, radians):
+        for vertex in self.vertices:
+            x = vertex.x - centres[0]
+            y = vertex.y - centres[1]
+            d = math.hypot(y, x)
+            theta = math.atan2(y, x) + radians
+            vertex.x = centres[0] + d * math.cos(theta)
+            vertex.y = centres[1] + d * math.sin(theta)
 
 if __name__ == "__main__":
-    cube_nodes = [(x, y, z) for x in (0, 1) for y in (0, 1) for z in (0, 1)]
+    cube_vertices = [(x, y, z) for x in (0, 1) for y in (0, 1) for z in (0, 1)]
     cube = Wireframe()
-    cube.addNodes(cube_nodes)
-    cube.addEdges([(n, n + 4) for n in range(0, 4)])
-    cube.addEdges([(n, n + 1) for n in range(0, 8, 2)])
-    cube.addEdges([(n, n + 2) for n in (0, 1, 4, 5)])
+    cube.addvertices(cube_vertices)
+    cube.addedges([(n, n + 4) for n in range(0, 4)])
+    cube.addedges([(n, n + 1) for n in range(0, 8, 2)])
+    cube.addedges([(n, n + 2) for n in (0, 1, 4, 5)])
 
-    cube.outputNodes()
-    cube.outputEdges()
+    cube.outputvertices()
+    cube.outputedges()
