@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b7123b06-e6d2-411b-a59c-99227779af12" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Minesweeper.py" afterPath="$PROJECT_DIR$/Minesweeper.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test.py" afterPath="$PROJECT_DIR$/test.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/wireframe.py" afterPath="$PROJECT_DIR$/wireframe.py" />
     </list>
     <ignored path="Minesweeper.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -25,11 +24,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="375">
-      <file leaf-file-name="Minesweeper.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Minesweeper.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Minesweeper.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4624">
-              <caret line="274" column="8" selection-start-line="274" selection-start-column="8" selection-end-line="279" selection-end-column="39" />
+            <state relative-caret-position="453">
+              <caret line="392" column="26" selection-start-line="392" selection-start-column="26" selection-end-line="392" selection-end-column="26" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -40,7 +39,7 @@
       <file leaf-file-name="wireframe.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/wireframe.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-300">
+            <state relative-caret-position="618">
               <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
               <folding />
             </state>
@@ -59,11 +58,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="117">
-              <caret line="27" column="54" selection-start-line="26" selection-start-column="55" selection-end-line="27" selection-end-column="54" />
+            <state relative-caret-position="238">
+              <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -87,11 +86,11 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/misc.py" />
-        <option value="$PROJECT_DIR$/Minesweeper.py" />
         <option value="$PROJECT_DIR$/3D Testing.py" />
         <option value="$PROJECT_DIR$/wireframe.py" />
-        <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/testing.py" />
+        <option value="$PROJECT_DIR$/test.py" />
+        <option value="$PROJECT_DIR$/Minesweeper.py" />
       </list>
     </option>
   </component>
@@ -135,7 +134,7 @@
       <recent name="C:\Users\Jacob\Documents\Python" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager" selected="Python.Minesweeper">
     <configuration default="false" name="Minesweeper" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -364,11 +363,11 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.test" />
-        <item index="1" class="java.lang.String" itemvalue="Python.testing" />
-        <item index="2" class="java.lang.String" itemvalue="Python.wireframe" />
-        <item index="3" class="java.lang.String" itemvalue="Python.3D Testing" />
-        <item index="4" class="java.lang.String" itemvalue="Python.Minesweeper" />
+        <item index="0" class="java.lang.String" itemvalue="Python.Minesweeper" />
+        <item index="1" class="java.lang.String" itemvalue="Python.test" />
+        <item index="2" class="java.lang.String" itemvalue="Python.testing" />
+        <item index="3" class="java.lang.String" itemvalue="Python.wireframe" />
+        <item index="4" class="java.lang.String" itemvalue="Python.3D Testing" />
       </list>
     </recent_temporary>
   </component>
@@ -424,16 +423,14 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="15" />
+      <option name="time" value="20" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="PythonConfigurationType">
-        <watch expression="x" language="Python" />
-        <watch expression="y" language="Python" />
-        <watch expression="z" language="Python" />
-        <watch expression="pos" language="Python" />
-        <watch expression="(pos[0] - margin) // (gridwidth + margin)" language="Python" />
-        <watch expression="(pos[1] - margin) // (gridheight + margin)" language="Python" />
+        <watch expression="i" language="Python" />
+        <watch expression="j" language="Python" />
+        <watch expression="k" language="Python" />
+        <watch expression="aisle" language="Python" />
       </configuration>
     </watches-manager>
   </component>
@@ -608,16 +605,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Minesweeper.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4624">
-          <caret line="274" column="8" selection-start-line="274" selection-start-column="8" selection-end-line="279" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/3D Testing.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="292">
@@ -632,14 +619,6 @@
           <folding>
             <marker date="1464945422824" expanded="true" signature="706:729" placeholder="..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/wireframe.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-300">
-          <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -661,8 +640,26 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="117">
-          <caret line="27" column="54" selection-start-line="26" selection-start-column="55" selection-end-line="27" selection-end-column="54" />
+        <state relative-caret-position="238">
+          <caret line="137" column="32" selection-start-line="137" selection-start-column="32" selection-end-line="137" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/wireframe.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="618">
+          <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Minesweeper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="453">
+          <caret line="392" column="26" selection-start-line="392" selection-start-column="26" selection-end-line="392" selection-end-column="26" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>

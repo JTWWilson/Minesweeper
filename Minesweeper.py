@@ -329,7 +329,7 @@ def main():
         for j in range(0, len(board[i])):
             for k in range(0, len(board[i][j])):
                 board[i][j][k]['solution'] = findadjacent(board, j, i, k, 'x')
-    print(board)
+    #print(board)
     row = 0
     column = 0
     orientations = {'front': [row, column, 0],
@@ -349,7 +349,7 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key in range(49, 55):
                     face = faces[int(chr(event.key)) - 1]
-                    print(face)
+                    #print(face)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
                 # change as the mouse changes, messing up which square is selected
@@ -367,13 +367,13 @@ def main():
                     x = orientations[face][0]
                     y = orientations[face][1]
                     z = orientations[face][2]
-                    for i in board:
-                        field = ''
-                        for j in i:
-                            field += str(j[0]['solution'])
-                        print(field)
-                    print([x, y, z])
-                    print(board[y][x][z])
+                    # for i in board:
+                    #    field = ''
+                    #    for j in i:
+                    #        field += str(j[0]['solution'])
+                    #    print(field)
+                    # print([x, y, z])
+                    # print(board[y][x][z])
                     if event.button == 1:
                         #board[y][x][z]['pressed'] = True
                         pygame.draw.rect(screen, GREY,
@@ -390,7 +390,7 @@ def main():
                             if temp != 'x':
                                 board = temp
                     elif event.button == 3:
-                        print('button 3')
+                        # print('button 3')
                         board = flagsquare(board, y, x, z)
         font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
         text = font.render(face, True, BLACK)

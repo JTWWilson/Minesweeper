@@ -90,7 +90,7 @@ class ProjectionViewer:
         """ Draw the wireframes on the screen. """
 
         self.screen.fill(self.background)
-
+        print(len(self.wireframes))
         for frame in self.wireframes.values():
             if self.displayfaces:
                 for face in frame.faces:
@@ -134,20 +134,23 @@ class ProjectionViewer:
         :param theta: By what angle they are rotated
         """
         for frame in self.wireframes:
-            centre = self.wireframes[frame].findcentre()
+            # centre = self.wireframes[frame].findcentre()
+            centre = (300, 300, 300)
             getattr(self.wireframes[frame], 'rotate' + axis)(centre, theta)
 
 
 board = []
 clock = pygame.time.Clock()
-
-for i in range(10):
+pygame.init()
+display = ProjectionViewer(600, 600)
+for y in range(10):
     row = []
-    for j in range(10):
+    for x in range(10):
         aisle = []
-        for k in range(10):
-            if [0, 0] == [i, j]:
-                [i, j, k] = [x + 1 * 100 for x in [i, j, k]]
+        for z in range(10):
+            [i, j, k] = [(int(x) + 1 )* 100 for x in [y, x, z]]
+            if [100, 200, 100] == [i, j, k] or [100, 100, 100] == [i, j, k]:
+                print('hi')
                 aisle.append(
                     wireframe.Wireframe(
                         [[i, j, k],
@@ -180,17 +183,10 @@ for i in range(10):
                         [aisle[-1].vertices[5], aisle[-1].vertices[1], aisle[-1].vertices[0], aisle[-1].vertices[4]]
                     ])
                 # aisle[-1].scale(1, (300, 300))
+                display.addwireframe((i, j, k), aisle[-1])
         row.append(aisle)
     board.append(row)
 
-pygame.init()
 
-display = ProjectionViewer(600, 600)
-
-for i in range(len(board)):
-    for j in range(len(board[i])):
-        for k in range(len((board[i][j]))):
-            if [i, j] == [0, 0]:
-                display.addwireframe((i, j, k), board[i][j][k])
 
 display.run()
