@@ -20,11 +20,19 @@ class Edge:
         self.stop = stop
 
 
+class Face:
+    """
+    Defines an face which holds all of its vertices
+    """
+    def __init__(self, vertices):
+        self.vertices = vertices
+
+
 class Wireframe:
     """
     A wireframe object that has a given number of vertices and a given number of edges
     """
-    def __init__(self, vertices=(), edges=()):
+    def __init__(self, vertices=(), edges=(), faces=()):
         """
         Defines the wireframe, with vertices and edges if necessary
         :param vertices: The wireframe's vertices
@@ -32,10 +40,13 @@ class Wireframe:
         """
         self.vertices = []
         self.edges = []
+        self.faces = []
         if len(vertices) > 0:
             self.addvertices(vertices)
         if len(edges) > 0:
             self.addedges(edges)
+        if len(faces) > 0:
+            self.addfaces(faces)
 
     def addvertices(self, vertexlist):
         """
@@ -47,11 +58,19 @@ class Wireframe:
 
     def addedges(self, edgelist):
         """
-        Allows the program to add in a given number of vertices
+        Allows the program to add in a given number of edges
         :param edgelist: The list of edges to be added
         """
         for (start, stop) in edgelist:
             self.edges.append(Edge(self.vertices[start], self.vertices[stop]))
+
+    def addfaces(self, facelist):
+        """
+        Allows the program to add in a given number of face
+        :param facelist: The list of faces to be added
+        """
+        for face in facelist:
+            self.faces.append(Face(face))
 
     def translate(self, axis, d):
         """
@@ -64,7 +83,7 @@ class Wireframe:
             for vertex in self.vertices:
                 setattr(vertex, axis, getattr(vertex, axis) + d)
 
-    #def scale(self, centres, scale):
+    # def scale(self, centres, scale):
     #    """"""
     #    """ Scale the wireframe from the centre of the screen """
     #
@@ -118,5 +137,5 @@ if __name__ == "__main__":
     cube.addedges([(n, n + 1) for n in range(0, 8, 2)])
     cube.addedges([(n, n + 2) for n in (0, 1, 4, 5)])
 
-    cube.outputvertices()
-    cube.outputedges()
+    # cube.outputvertices()
+    # cube.outputedges()
