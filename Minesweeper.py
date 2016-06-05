@@ -1,11 +1,10 @@
 import random
 import pygame
 import misc
+import wireframe
 
 pygame.init()
-global screen
-screen = pygame.display.set_mode((600, 600))
-
+pygame.display.set_mode((600, 600))
 
 # Colours
 BLACK = (0, 0, 0)
@@ -155,10 +154,11 @@ def flagsquare(board, x, y, z):
     return board
 
 
-def checkinput(question, typecheck, startrange=float('-inf'), endrange=float('inf')):
+def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=float('inf')):
     """
     It takes in a question to ask the user, asks it, checks if it is a valid input
     (if not they must re-enter it) and returns their final answer
+    :parameter screen: The screen upon which the question is asked
     :parameter question: the question that is posed to the user
     :parameter typecheck: The data type that the user is required to enter
     :parameter startrange: The lower end of the range to which, if a float or integer is required, the user's input must
@@ -198,175 +198,172 @@ def checkinput(question, typecheck, startrange=float('-inf'), endrange=float('in
     return answer
 
 
-def showface(board, extra, width, height, depth, face, layer='display'):
-    """
-    Shows an entire sheet on the screen
-    :param board: The board from which the sheet is referenced
-    :param width: The width of the board
-    :param height: The height of the board
-    :param depth: The depth of the board
-    :param sheet: Which sheet is being displayed
-    :param layer: Which layer of the board is being accessed
-    """
-  # window_size = [(gridwidth * width) + (margin * width + 4),
-   #                (gridheight * height) + (margin * height + 4) + extra]
-    #screen = pygame.display.set_mode(window_size)
-    pygame.draw.rect(screen, GREY,
-                     (0,
-                      0,
-                      (margin + gridwidth) * width + 4,
-                      (margin + gridheight) * height + 4,
-                      ))
-    orientations = {'front': [width, height, depth],
-                    'right': [depth, width, height],
-                    'back': [width, height, depth],
-                    'left': [depth, height, width],
-                    'top': [width, depth, height],
-                    'bottom': [width, depth, height]}
-    for x in range(orientations[face][1]):
-        for y in range(orientations[face][0]):
-            show = 0
-            if board[y][x][show][layer] == 0:
-                while show + 1 < orientations[face][2] and board[y][x][show][layer] == 0:
-                   #print(str(show) + 'show')
-                    show += 1
-                showtile(board, y, x, show, layer)
-            else:
-                showtile(board, y, x, 0, layer)
-            font = pygame.font.SysFont(FONT, 10, True, False)
-            text = font.render(str(show), True, BLACK)
-            screen.blit(text, [(margin + gridwidth) * x,
-                               (margin + gridheight) * y,
-                               gridwidth,
-                               gridheight])
-    pygame.display.flip()
-
-
-def showtile(board, x, y, z, layer):
-    """
-    Shows one tile with the given coordinates on the screen
-    :param board: The board from which the point is referenced
-    :param y: The y coordinate of the point
-    :param x: The x coordinate of the point
-    :param z: The z coordinate of the point
-    :param layer: Which layer of the board is being accessed
-    """
-    # ToDo: Resetting colours every time seems to be quite inefficient, look again?
-    colours = (GREY, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, WHITE)
-    if layer == 'solution':
-        colours = tuple(([i + 100 if i < 155 else i - 50 if i > 50 else i for i in colour] for colour in colours))
-    if board[y][x][z][layer] == 'x':
-        if layer == 'solution':
-            screen.blit(mine, [(margin + gridwidth) * x,
-                               (margin + gridheight) * y,
-                               gridwidth,
-                               gridheight])
-        elif layer == 'display':
-            screen.blit(tile, [(margin + gridwidth) * x,
-                               (margin + gridheight) * y,
-                               gridwidth,
-                               gridheight])
-    elif board[y][x][z][layer] == '_' and layer == 'display':
-        screen.blit(tile, [(margin + gridwidth) * x,
-                           (margin + gridheight) * y,
-                           gridwidth,
-                           gridheight])
-    else:
-        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-        text = font.render(str(board[y][x][z][layer]), True, colours[board[y][x][z][layer]])
-        screen.blit(text, [(margin + gridwidth) * x + margin * 2,
-                           (margin + gridheight) * y - margin * 2,
-                           gridwidth,
-                           gridheight])
-    if board[y][x][z]['flagged'] is True:
-        if layer == 'display' or (layer == 'solution' and board[y][x][z]['solution'] == 'x'):
-            screen.blit(flag, [(margin + gridwidth) * x,
-                               (margin + gridheight) * y,
-                               gridwidth,
-                               gridheight])
-        elif layer == 'solution' and board[y][x][z]['solution'] != 'x':
-            screen.blit(wronglyflagged, [(margin + gridwidth) * x,
-                                         (margin + gridheight) * y,
-                                         gridwidth,
-                                         gridheight])
-
-
-def show3d():
-    pass
-
-
+"""
 def main():
-    """
-    The main function with the game loop
-    """
 
-    boardx = checkinput('How wide would you like the board to be? ', int, startrange=0, endrange=40)
-    boardy = checkinput('How long would you like the board to be? ', int, startrange=0, endrange=15)
-    boardz = checkinput('How deep would you like the board to be? ', int, startrange=0, endrange=5)
-    mineno = \
-        checkinput('How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
-    font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-    extra = pygame.font.Font.size(font, 'Front')[1]
-    window_size = [(gridwidth * boardx) + (margin * boardx + 4),
-                   (gridheight * boardy) + (margin * boardy + 4) + extra]
-   # screen = pygame.display.set_mode(window_size)
-    # Set title of screen
-    pygame.display.set_caption("Minesweeper")
-    screen.fill(GREY)
-    running = True
-    clock = pygame.time.Clock()
+    The main function with the game loop
+
     mines = []
     coords = []
-    faces = ['front', 'right', 'back', 'left', 'top', 'bottom']
-    for i in range(mineno):
-        coords = [random.randrange(0, boardx), random.randrange(0, boardy), random.randrange(0, boardz)]
-        while coords in mines:
-            coords = [random.randrange(0, boardx), random.randrange(0, boardy), random.randrange(0, boardz)]
-        mines.append(coords)
-   # print(mines)
-    board = createboard(boardx, boardy, boardz, mines)
-    for i in range(0, len(board)):
-        for j in range(0, len(board[i])):
-            for k in range(0, len(board[i][j])):
-                board[i][j][k]['solution'] = findadjacent(board, j, i, k, 'x')
-    #print(board)
-    row = 0
-    column = 0
-    orientations = {'front': [row, column, 0],
-                    'right': [0, column, row],
-                    'back': [(boardx - 1) - row, column, 0],
-                    'left': [0, column, (boardx - 1) - row ],
-                    'top': [row, 0, (boardz - 1) - column],
-                    'bottom': [row, 0, column]}
-    face = 'front'
+    # print(mines)
     while running:
-        face = 'front'
         temp = ''
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key in range(49, 55):
-                    face = faces[int(chr(event.key)) - 1]
-                    #print(face)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
-                # change as the mouse changes, messing up which square is selected
-                pos = tuple((int(i) for i in pygame.mouse.get_pos()))
-                if pos[1] < (gridheight + margin) * boardy and pos[0] < (gridwidth + margin) * boardx: #ToDo: Change depending on face
+        # print(face)
+
+        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
+        text = font.render(face, True, BLACK)
+        pygame.draw.rect(screen, GREY,
+                         (0, window_size[1] - extra, window_size[0],
+                          window_size[1] - pygame.font.Font.size(font, face)[1],
+                          # pygame.font.Font.size(font, face)[0],
+                          ))
+        screen.blit(text, [window_size[0] / 2 - pygame.font.Font.size(font, face)[0] / 2,
+                           (gridheight + margin) * boardy])
+        pygame.display.flip()
+        flagged = 0
+"""
+
+# Converts the user's key-input to a rotation or translation
+key_to_function = {
+    pygame.K_LEFT: (lambda n: n.translateall('x', -10)),
+    pygame.K_RIGHT: (lambda n: n.translateall('x', 10)),
+    pygame.K_DOWN: (lambda n: n.translateall('y', 10)),
+    pygame.K_UP: (lambda n: n.translateall('y', -10)),
+    # pygame.K_EQUALS: (lambda x: x.scaleAll(1.25)),
+    # pygame.K_MINUS:  (lambda x: x.scaleAll( 0.8)),
+    pygame.K_q: (lambda n: n.rotateall('x', 0.1)),
+    pygame.K_w: (lambda n: n.rotateall('x', -0.1)),
+    pygame.K_a: (lambda n: n.rotateall('y', 0.1)),
+    pygame.K_s: (lambda n: n.rotateall('y', -0.1)),
+    pygame.K_z: (lambda n: n.rotateall('z', 0.1)),
+    pygame.K_x: (lambda n: n.rotateall('z', -0.1))}
+
+
+class ProjectionViewer:
+    """
+    Displays 3D objects on a Pygame screen
+    """
+
+    def __init__(self):
+        """
+        Runs start up
+        """
+        self.wireframes = {}
+        self.screen = pygame.display.set_mode((600, 600))
+        self.boardx = checkinput(self.screen, 'How wide would you like the board to be? ', int, startrange=0,
+                                 endrange=40)
+        self.boardy = checkinput(self.screen, 'How long would you like the board to be? ', int, startrange=0,
+                                 endrange=15)
+        self.boardz = checkinput(self.screen, 'How deep would you like the board to be? ', int, startrange=0,
+                                 endrange=5)
+        self.mineno = checkinput(self.screen, 'How many mines would you like there to be? ', int, startrange=0,
+                                 endrange=(self.boardx * self.boardy))
+        for y in range(self.boardy):
+            for x in range(self.boardx):
+                for z in range(self.boardz):
+                    [i, j, k] = [(int(n) + 1) * 100 for n in [y, x, z]]
+                    n = wireframe.Wireframe(
+                        [[i, j, k],
+                         [i + 100, j, k],
+                         [i, j - 100, k],
+                         [i + 100, j - 100, k],
+                         [i, j, k + 100],
+                         [i + 100, j, k + 100],
+                         [i, j - 100, k + 100],
+                         [i + 100, j - 100, k + 100]
+                         ],
+                        [(n, n + 4)
+                         for n in range(0, 4)] + [(n, n + 1)
+                                                  for n in range(0, 8, 2)] + [(n, n + 2)
+                                                                              for n in (0, 1, 4, 5)],
+                    )
+                    n.addfaces([
+                        [n.vertices[0], n.vertices[1], n.vertices[3], n.vertices[2]],
+                        [n.vertices[0], n.vertices[4], n.vertices[6], n.vertices[2]],
+                        [n.vertices[0], n.vertices[1], n.vertices[5], n.vertices[4]],
+                        [n.vertices[5], n.vertices[7], n.vertices[3], n.vertices[1]],
+                        [n.vertices[5], n.vertices[7], n.vertices[6], n.vertices[4]],
+                        [n.vertices[5], n.vertices[1], n.vertices[0], n.vertices[4]]
+                    ])
+                    # n.scale(1, (300, 300))
+                    self.addwireframe((i, j, k), n)
+
+        mines = []
+        for i in range(self.mineno):
+            coords = [random.randrange(0, self.boardx),
+                      random.randrange(0, self.boardy),
+                      random.randrange(0, self.boardz)]
+            while coords in mines:
+                coords = [random.randrange(0, self.boardx),
+                          random.randrange(0, self.boardy),
+                          random.randrange(0, self.boardz)]
+            mines.append(coords)
+        self.board = createboard(self.boardx, self.boardy, self.boardz, mines)
+        for i in range(0, len(self.board)):
+            for j in range(0, len(self.board[i])):
+                for k in range(0, len(self.board[i][j])):
+                    self.board[i][j][k]['solution'] = findadjacent(self.board, j, i, k, 'x')
+
+        # self.width = (gridwidth * self.boardx) + (margin * self.boardx + 4)
+        # self.height = (gridheight * self.boardy) + (margin * self.boardy + 4)
+        self.width = 600
+        self.height = 600
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption('3D Minesweeper')
+        self.background = (0, 0, 0)
+
+        self.displayvertices = True
+        self.displayedges = True
+        self.displayfaces = True
+        self.vertexcolour = (255, 255, 255)
+        self.edgecolour = (200, 200, 200)
+        self.vertexRadius = 4
+        facecolour = (150, 150, 150)
+        for frame in self.wireframes.values():
+            for face in frame.faces.values():
+                face['colour'] = facecolour
+
+    def addwireframe(self, name, frame):
+        """
+        Adds a named Wireframe object
+        :param name: The name of the object
+        :param frame: The object itself
+        """
+        self.wireframes[name] = frame
+
+    def run(self):
+        """
+        Create a pygame screen until it is closed by the user.
+        """
+        running = True
+        temp = ''
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in key_to_function:
+                        key_to_function[event.key](self)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
+                    # change as the mouse changes, messing up which square is selected
+                    pos = tuple((int(i) for i in pygame.mouse.get_pos()))
+                    # if pos[1] < (gridheight + margin) * self.boardy and pos[0] < (gridwidth + margin) * self.boardx:
+                    for frame in self.wireframes.values():
+                        for face in frame.faces.keys():
+                            # print(pos[0])
+                            # print([vertex.x for vertex in face.vertices])
+                            if frame.faces[face]['face'].vertices[0].x < pos[0] \
+                                    < frame.faces[face]['face'].vertices[1].x and \
+                                            frame.faces[face]['face'].vertices[2].x > pos[0] \
+                                            > frame.faces[face]['face'].vertices[3].x:
+                                if frame.faces[face]['face'].vertices[0].y > pos[1] > frame.faces[face]['face'].vertices[2].y and \
+                                            frame.faces[face]['face'].vertices[1].y > pos[1] > frame.faces[face]['face'].vertices[3].y:
+                                    frame.faces[face]['colour'] = GREEN
                     # Change the x/y screen coordinates to grid coordinates
-                    column = abs(pos[0] - margin) // (gridwidth + margin)
+                    column = abs(1)
                     row = abs(pos[1] - margin) // (gridheight + margin)
-                    orientations = {'front': [column, row, 0],
-                                    'right': [0, row, column],
-                                    'back': [(boardx - 1) - column, row, 0],
-                                    'left': [0, row, (boardx - 1) - column],
-                                    'top': [column, 0, (boardz - 1) - row],
-                                    'bottom': [column, 0, row]}
-                    x = orientations[face][0]
-                    y = orientations[face][1]
-                    z = orientations[face][2]
                     # for i in board:
                     #    field = ''
                     #    for j in i:
@@ -374,87 +371,145 @@ def main():
                     #    print(field)
                     # print([x, y, z])
                     # print(board[y][x][z])
-                    if event.button == 1:
-                        #board[y][x][z]['pressed'] = True
-                        pygame.draw.rect(screen, GREY,
-                                         ((margin + gridwidth) * column,
-                                          (margin + gridheight) * row,
-                                          gridwidth + margin,
-                                          gridheight + margin,
-                                          ))
-                        pygame.display.flip()
-                        # elif event.type == pygame.MOUSEBUTTONUP:
-                        # if event.button == 1:
-                        if board[y][x][z]['flagged'] is False:
-                            temp = choose(board, y, x, z)
-                            if temp != 'x':
-                                board = temp
-                    elif event.button == 3:
+
+                    #if event.button == 1:
+                    #    # board[y][x][z]['pressed'] = True
+                    #    # elif event.type == pygame.MOUSEBUTTONUP:
+                    #    # if event.button == 1:
+                    #    if self.board[y][x][z]['flagged'] is False:
+                    #        temp = choose(self.board, y, x, z)
+                    #        if temp != 'x':
+                    #            self.board = temp
+                    #elif event.button == 3:
                         # print('button 3')
-                        board = flagsquare(board, y, x, z)
-        font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-        text = font.render(face, True, BLACK)
-        pygame.draw.rect(screen, GREY,
-                         (0, window_size[1] - extra, window_size[0],
-                          window_size[1] - pygame.font.Font.size(font, face)[1],
-                          #pygame.font.Font.size(font, face)[0],
-                          ))
-        screen.blit(text, [window_size[0] / 2 - pygame.font.Font.size(font, face)[0] / 2,
-                           (gridheight + margin) * boardy])
-        pygame.display.flip()
-        flagged = 0
-        for i in board:
-            for j in i:
-                for k in j:
-                    if k['flagged'] == True and k['solution'] == 'x':
-                        flagged += 1
-        if temp == 'x' or flagged == mineno:
-            screen.fill(GREY)
-            showface(board, extra, boardy, boardx, boardz, face, 'solution')
-            if temp == 'x':
-                message = 'GAME OVER!'
-            elif flagged == mineno:
-                message = 'YOU WIN!'
-            font = pygame.font.SysFont(FONT, 50, True, False)
-            text = font.render(message, True, BLACK)
-            pygame.draw.rect(screen, GREY,
-                             (window_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                              window_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2,
-                              pygame.font.Font.size(font, message)[0],
-                              pygame.font.Font.size(font, message)[1] - 5,
-                              ))
-            screen.blit(text, (window_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                               window_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2))
+                    #    self.board = flagsquare(self.board, y, x, z)
+            flagged = 0
+            for i in self.board:
+                for j in i:
+                    for k in j:
+                        if k['flagged'] == True and k['solution'] == 'x':
+                            flagged += 1
+            self.display()
+            clock.tick(60)
+
+            if temp == 'x' or flagged == self.mineno:
+                self.screen.fill(GREY)
+                if temp == 'x':
+                    message = 'GAME OVER!'
+                elif flagged == self.mineno:
+                    message = 'YOU WIN!'
+                font = pygame.font.SysFont(FONT, 50, True, False)
+                text = font.render(message, True, BLACK)
+                pygame.draw.rect(self.screen, GREY,
+                                 (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                  self.height / 2 - pygame.font.Font.size(font, message)[1] / 2,
+                                  pygame.font.Font.size(font, message)[0],
+                                  pygame.font.Font.size(font, message)[1] - 5,
+                                  ))
+                self.screen.blit(text, (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                        self.height / 2 - pygame.font.Font.size(font, message)[1] / 2))
             pygame.display.flip()
-            while True:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-                    elif event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == 13):
-                        main()
-        orientations = {'front': [column, row, 0],
-                        'right': [0, row, column],
-                        'back': [(boardx - 1) - column, row, 0],
-                        'left': [0, row, (boardx - 1) - column],
-                        'top': [column, 0, (boardz - 1) - row],
-                        'bottom': [column, 0, row],
-                        'frontface': [boardx, boardy, boardz],
-                        'rightface': [boardz, boardx, boardy],
-                        'backface': [boardx, boardy, boardz],
-                        'leftface': [boardz, boardy, boardx],
-                        'topface': [boardx, boardz, boardy],
-                        'bottomface': [boardx, boardz, boardy]}
-        #l = [boardx, boardy, boardz]
-        #for i in range(len(l)):
-        #    print(l[i])
-        #    print(orientations[face + 'face'][i])
-        showface(board, extra,
-                 boardx,
-                 boardy,
-                 boardz, face)
-        clock.tick(50)
-    pygame.quit()
+
+    def display(self):
+        """ Draw the wireframes on the screen. """
+        self.screen.fill(self.background)
+        total = 0
+        for frame in self.wireframes:
+            if frame[0] == 100 or frame[1] == 100 or frame[2] == 100 or frame[0] == self.boardx * 100 or \
+                            frame[1] == self.boardx * 100 or frame[2] == self.boardx * 100:
+                if self.displayedges:
+                    for edge in self.wireframes[frame].edges:
+                        pygame.draw.aaline(self.screen, self.edgecolour, (edge.start.x, edge.start.y),
+                                           (edge.stop.x, edge.stop.y), 1)
+                if self.displayfaces:
+                    for face in sorted(self.wireframes[frame].faces.values(),
+                                       key=lambda faces: min([vertex.z for vertex in faces['face'].vertices]),
+                                       reverse=True):
+                        total += 1
+                        pygame.draw.polygon(self.screen,
+                                            face['colour'],
+                                            [(vertex.x, vertex.y) for vertex in face['face'].vertices],
+                                            0)
+                if self.displayvertices:
+                    for vertex in range(len(self.wireframes[frame].vertices)):
+                        # font = pygame.font.SysFont(FONT, 50, True, False)
+                        # text = font.render(str(vertex), True, RED)
+                        # self.screen.blit(text, (int(self.wireframes[frame].vertices[vertex].x),
+                        #                        int(self.wireframes[frame].vertices[vertex].y)))
+                        pygame.draw.circle(self.screen,
+                                           self.vertexcolour,
+                                           (int(self.wireframes[frame].vertices[vertex].x),
+                                            int(self.wireframes[frame].vertices[vertex].y)),
+                                           self.vertexRadius, 0)
+        print(total)
+
+    def translateall(self, axis, d):
+        """
+        Translate all wireframes along a given axis by d units.
+        :param axis: The axis on which the wireframes are translated
+        :param d: By how many units they are translated
+        """
+        for frame in self.wireframes:
+            self.wireframes[frame].translate(axis, d)
+
+    def rotateall(self, axis, theta):
+        """
+        Rotate all wireframe about their centre, along a given axis by a given angle.
+        :param axis: The axis on which the wireframes are rotated
+        :param theta: By what angle they are rotated
+        """
+        for frame in self.wireframes:
+            # centre = self.wireframes[frame].findcentre()
+            centre = (300, 300, 300)
+            getattr(self.wireframes[frame], 'rotate' + axis)(centre, theta)
 
 
-main()
+frames = []
+clock = pygame.time.Clock()
+pygame.init()
+display = ProjectionViewer()
+"""
+for y in range(5):
+    row = []
+    for x in range(5):
+        aisle = []
+        for z in range(5):
+            [i, j, k] = [(int(n) + 1) * 100 for n in [y, x, z]]
+            # if [100, 100] == [i, j]:
+            aisle.append(
+                wireframe.Wireframe(
+                    [[i, j, k],
+                     [i + 100, j, k],
+                     [i, j - 100, k],
+                     [i + 100, j - 100, k],
+                     [i, j, k + 100],
+                     [i + 100, j, k + 100],
+                     [i, j - 100, k + 100],
+                     [i + 100, j - 100, k + 100]
+                     ],
+                    [(n, n + 4)
+                     for n in range(0, 4)] + [(n, n + 1)
+                                              for n in range(0, 8, 2)] + [(n, n + 2)
+                                                                          for n in (0, 1, 4, 5)],
+                    # [[[i, j, k], [i, j - 100, k], [i + 100, j - 100, k], [i + 100, j, k]],
+                    # [[i, j, k], [i + 100, j, k], [i + 100, j, k + 100], [i, j, k + 100]],
+                    # [[i, j, k], [i, j - 100, k], [i, j - 100, k + 100], [i, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i, j - 100, k + 100], [i, j, k + 100], [i, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i + 100, j, k], [i + 100, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i, j - 100, k], [i, j, k + 100]],]
+                ))
+            aisle[-1].addfaces(
+                [
+                    [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[3], aisle[-1].vertices[2]],
+                    [aisle[-1].vertices[0], aisle[-1].vertices[4], aisle[-1].vertices[6], aisle[-1].vertices[2]],
+                    [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[5], aisle[-1].vertices[4]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[3], aisle[-1].vertices[1]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[6], aisle[-1].vertices[4]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[1], aisle[-1].vertices[0], aisle[-1].vertices[4]]
+                ])
+            # aisle[-1].scale(1, (300, 300))
+            display.addwireframe((i, j, k), aisle[-1])
+        row.append(aisle)
+    frames.append(row)
+"""
+display.run()

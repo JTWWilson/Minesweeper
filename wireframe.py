@@ -32,7 +32,7 @@ class Wireframe:
     """
     A wireframe object that has a given number of vertices and a given number of edges
     """
-    def __init__(self, vertices=(), edges=(), faces=()):
+    def __init__(self, vertices=(), edges=(), faces=(), facenames=('front', 'right', 'back', 'left', 'top', 'bottom')):
         """
         Defines the wireframe, with vertices and edges if necessary
         :param vertices: The wireframe's vertices
@@ -40,13 +40,13 @@ class Wireframe:
         """
         self.vertices = []
         self.edges = []
-        self.faces = []
+        self.faces = {}
         if len(vertices) > 0:
             self.addvertices(vertices)
         if len(edges) > 0:
             self.addedges(edges)
         if len(faces) > 0:
-            self.addfaces(faces)
+            self.addfaces(faces, facenames)
 
     def addvertices(self, vertexlist):
         """
@@ -64,13 +64,13 @@ class Wireframe:
         for (start, stop) in edgelist:
             self.edges.append(Edge(self.vertices[start], self.vertices[stop]))
 
-    def addfaces(self, facelist):
+    def addfaces(self, facelist, facenames=('front', 'right', 'back', 'left', 'top', 'bottom')):
         """
         Allows the program to add in a given number of face
         :param facelist: The list of faces to be added
         """
-        for face in facelist:
-            self.faces.append(Face(face))
+        for i in range(len(facelist)):
+            self.faces[facenames[i]] = {'face': Face(facelist[i]), 'colour': (0, 0, 0), 'pressed': False}
 
     def translate(self, axis, d):
         """
@@ -83,14 +83,14 @@ class Wireframe:
             for vertex in self.vertices:
                 setattr(vertex, axis, getattr(vertex, axis) + d)
 
-    # def scale(self, centres, scale):
-    #    """"""
-    #    """ Scale the wireframe from the centre of the screen """
-    #
-    #    for vertex in self.vertices:
-    #        vertex.x = centres[0] + scale * (vertex.x - centres[0])
-    #        vertex.y = centres[1] + scale * (vertex.y - centres[1])
-    #        vertex.z *= scale
+    def scale(self, centres, scale):
+        """"""
+        """ Scale the wireframe from the centre of the screen """
+
+        for vertex in self.vertices:
+            vertex.x = centres[0] + scale * (vertex.x - centres[0])
+            vertex.y = centres[1] + scale * (vertex.y - centres[1])
+            vertex.z *= scale
 
     def findcentre(self):
         """ Find the centre of the wireframe. """

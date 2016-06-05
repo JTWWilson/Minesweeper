@@ -29,12 +29,10 @@ class ProjectionViewer:
 
     def addWireframe(self, name, wireframe):
         """ Add a named wireframe object. """
-
         self.wireframes[name] = wireframe
 
     def run(self):
         """ Create a pygame screen until it is closed. """
-
         running = True
         while running:
             for event in pygame.event.get():
@@ -49,7 +47,6 @@ class ProjectionViewer:
 
     def display(self):
         """ Draw the wireframes on the screen. """
-
         self.screen.fill(self.background)
 
         for wireframe in self.wireframes.values():
@@ -71,7 +68,6 @@ class ProjectionViewer:
 
     def scaleAll(self, scale):
         """ Scale all wireframes by a given scale, centred on the centre of the screen. """
-
         centre_x = self.width / 2
         centre_y = self.height / 2
         print(self.wireframes)

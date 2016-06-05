@@ -22,18 +22,18 @@ TEXTSIZE = 70
 
 # Converts the user's key-input to a rotation or translation
 key_to_function = {
-    pygame.K_LEFT: (lambda x: x.translateall('x', -10)),
-    pygame.K_RIGHT: (lambda x: x.translateall('x', 10)),
-    pygame.K_DOWN: (lambda x: x.translateall('y', 10)),
-    pygame.K_UP: (lambda x: x.translateall('y', -10)),
+    pygame.K_LEFT: (lambda n: n.translateall('x', -10)),
+    pygame.K_RIGHT: (lambda n: n.translateall('x', 10)),
+    pygame.K_DOWN: (lambda n: n.translateall('y', 10)),
+    pygame.K_UP: (lambda n: n.translateall('y', -10)),
     # pygame.K_EQUALS: (lambda x: x.scaleAll(1.25)),
     # pygame.K_MINUS:  (lambda x: x.scaleAll( 0.8)),
-    pygame.K_q: (lambda x: x.rotateall('x', 0.1)),
-    pygame.K_w: (lambda x: x.rotateall('x', -0.1)),
-    pygame.K_a: (lambda x: x.rotateall('y', 0.1)),
-    pygame.K_s: (lambda x: x.rotateall('y', -0.1)),
-    pygame.K_z: (lambda x: x.rotateall('z', 0.1)),
-    pygame.K_x: (lambda x: x.rotateall('z', -0.1))}
+    pygame.K_q: (lambda n: n.rotateall('x', 0.1)),
+    pygame.K_w: (lambda n: n.rotateall('x', -0.1)),
+    pygame.K_a: (lambda n: n.rotateall('y', 0.1)),
+    pygame.K_s: (lambda n: n.rotateall('y', -0.1)),
+    pygame.K_z: (lambda n: n.rotateall('z', 0.1)),
+    pygame.K_x: (lambda n: n.rotateall('z', -0.1))}
 
 
 class ProjectionViewer:
@@ -55,7 +55,7 @@ class ProjectionViewer:
         self.wireframes = {}
         self.displayvertices = True
         self.displayedges = True
-        self.displayfaces = True
+        self.displayfaces = False
         self.vertexcolour = (255, 255, 255)
         self.edgecolour = (200, 200, 200)
         self.vertexRadius = 4
@@ -73,7 +73,6 @@ class ProjectionViewer:
         """
         Create a pygame screen until it is closed by the user.
         """
-
         running = True
         while running:
             for event in pygame.event.get():
@@ -88,9 +87,8 @@ class ProjectionViewer:
 
     def display(self):
         """ Draw the wireframes on the screen. """
-
         self.screen.fill(self.background)
-        print(len(self.wireframes))
+
         for frame in self.wireframes.values():
             if self.displayfaces:
                 for face in frame.faces:
@@ -99,7 +97,6 @@ class ProjectionViewer:
                                         [(vertex.x, vertex.y) for vertex in face.vertices],
                                         0)
 
-
             if self.displayedges:
                 for edge in frame.edges:
                     pygame.draw.aaline(self.screen, self.edgecolour, (edge.start.x, edge.start.y),
@@ -107,16 +104,15 @@ class ProjectionViewer:
 
             if self.displayvertices:
                 for vertex in range(len(frame.vertices)):
-                    font = pygame.font.SysFont(FONT, 50, True, False)
-                    text = font.render(str(vertex), True, RED)
-                    self.screen.blit(text, (int(frame.vertices[vertex].x),
-                                            int(frame.vertices[vertex].y)))
+                    #font = pygame.font.SysFont(FONT, 50, True, False)
+                    #text = font.render(str(vertex), True, RED)
+                    #self.screen.blit(text, (int(frame.vertices[vertex].x),
+                    #                        int(frame.vertices[vertex].y)))
                     pygame.draw.circle(self.screen,
                                        self.vertexcolour,
                                        (int(frame.vertices[vertex].x),
                                         int(frame.vertices[vertex].y)),
                                        self.vertexRadius, 0)
-
 
     def translateall(self, axis, d):
         """
@@ -143,50 +139,48 @@ board = []
 clock = pygame.time.Clock()
 pygame.init()
 display = ProjectionViewer(600, 600)
-for y in range(10):
+for y in range(5):
     row = []
-    for x in range(10):
+    for x in range(5):
         aisle = []
-        for z in range(10):
-            [i, j, k] = [(int(x) + 1 )* 100 for x in [y, x, z]]
-            if [100, 200, 100] == [i, j, k] or [100, 100, 100] == [i, j, k]:
-                print('hi')
-                aisle.append(
-                    wireframe.Wireframe(
-                        [[i, j, k],
-                         [i + 100, j, k],
-                         [i, j - 100, k],
-                         [i + 100, j - 100, k],
-                         [i, j, k + 100],
-                         [i + 100, j, k + 100],
-                         [i, j - 100, k + 100],
-                         [i + 100, j - 100, k + 100]
-                         ],
-                        [(n, n + 4)
-                         for n in range(0, 4)] + [(n, n + 1)
-                                                  for n in range(0, 8, 2)] + [(n, n + 2)
-                                                                              for n in (0, 1, 4, 5)],
-                        # [[[i, j, k], [i, j - 100, k], [i + 100, j - 100, k], [i + 100, j, k]],
-                        # [[i, j, k], [i + 100, j, k], [i + 100, j, k + 100], [i, j, k + 100]],
-                        # [[i, j, k], [i, j - 100, k], [i, j - 100, k + 100], [i, j, k + 100]],
-                        # [[i + 100, j - 100, k + 100], [i, j - 100, k + 100], [i, j, k + 100], [i, j, k + 100]],
-                        # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i + 100, j, k], [i + 100, j, k + 100]],
-                        # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i, j - 100, k], [i, j, k + 100]],]
-                    ))
-                aisle[-1].addfaces(
-                    [
-                        [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[3], aisle[-1].vertices[2]],
-                        [aisle[-1].vertices[0], aisle[-1].vertices[4], aisle[-1].vertices[6], aisle[-1].vertices[2]],
-                        [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[5], aisle[-1].vertices[4]],
-                        [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[3], aisle[-1].vertices[1]],
-                        [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[6], aisle[-1].vertices[4]],
-                        [aisle[-1].vertices[5], aisle[-1].vertices[1], aisle[-1].vertices[0], aisle[-1].vertices[4]]
-                    ])
-                # aisle[-1].scale(1, (300, 300))
-                display.addwireframe((i, j, k), aisle[-1])
+        for z in range(5):
+            [i, j, k] = [(int(n) + 1) * 100 for n in [y, x, z]]
+            #if [100, 100] == [i, j]:
+            aisle.append(
+                wireframe.Wireframe(
+                    [[i, j, k],
+                     [i + 100, j, k],
+                     [i, j - 100, k],
+                     [i + 100, j - 100, k],
+                     [i, j, k + 100],
+                     [i + 100, j, k + 100],
+                     [i, j - 100, k + 100],
+                     [i + 100, j - 100, k + 100]
+                     ],
+                    [(n, n + 4)
+                     for n in range(0, 4)] + [(n, n + 1)
+                                              for n in range(0, 8, 2)] + [(n, n + 2)
+                                                                          for n in (0, 1, 4, 5)],
+                    # [[[i, j, k], [i, j - 100, k], [i + 100, j - 100, k], [i + 100, j, k]],
+                    # [[i, j, k], [i + 100, j, k], [i + 100, j, k + 100], [i, j, k + 100]],
+                    # [[i, j, k], [i, j - 100, k], [i, j - 100, k + 100], [i, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i, j - 100, k + 100], [i, j, k + 100], [i, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i + 100, j, k], [i + 100, j, k + 100]],
+                    # [[i + 100, j - 100, k + 100], [i + 100, j - 100, k], [i, j - 100, k], [i, j, k + 100]],]
+                ))
+            aisle[-1].addfaces(
+                [
+                    [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[3], aisle[-1].vertices[2]],
+                    [aisle[-1].vertices[0], aisle[-1].vertices[4], aisle[-1].vertices[6], aisle[-1].vertices[2]],
+                    [aisle[-1].vertices[0], aisle[-1].vertices[1], aisle[-1].vertices[5], aisle[-1].vertices[4]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[3], aisle[-1].vertices[1]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[7], aisle[-1].vertices[6], aisle[-1].vertices[4]],
+                    [aisle[-1].vertices[5], aisle[-1].vertices[1], aisle[-1].vertices[0], aisle[-1].vertices[4]]
+                ])
+            # aisle[-1].scale(1, (300, 300))
+            display.addwireframe((i, j, k), aisle[-1])
         row.append(aisle)
     board.append(row)
-
 
 
 display.run()
