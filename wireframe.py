@@ -5,39 +5,44 @@ class Vertex:
     """
     Defines a vertex which holds its x, y and z coordinates
     """
-    def __init__(self, coordinates):
+    def __init__(self, coordinates, colour):
         self.x = coordinates[0]
         self.y = coordinates[1]
         self.z = coordinates[2]
+        self.colour = colour
 
 
 class Edge:
     """
     Defines an edge which holds its starting and stopping points
     """
-    def __init__(self, start, stop):
+    def __init__(self, start, stop, colour):
         self.start = start
         self.stop = stop
+        self.colour = colour
 
 
 class Face:
     """
     Defines an face which holds all of its vertices
     """
-    def __init__(self, vertices):
+    def __init__(self, vertices, colour):
         self.vertices = vertices
+        self.colour = colour
 
 
 class Wireframe:
     """
     A wireframe object that has a given number of vertices and a given number of edges
     """
-    def __init__(self, vertices=(), edges=(), faces=(), facenames=('front', 'right', 'back', 'left', 'top', 'bottom')):
+    def __init__(self, vertices=(), edges=(), faces=(), facenames=('front', 'right', 'back', 'left', 'top', 'bottom'),
+                 colours=((0, 0, 0), (10, 10, 10), (50, 50, 50))):
         """
         Defines the wireframe, with vertices and edges if necessary
         :param vertices: The wireframe's vertices
         :param edges: The wireframe's edges
         """
+        self.vertexcolour, self.edgecolour, self.facecolour = colours
         self.vertices = []
         self.edges = []
         self.faces = {}
@@ -54,7 +59,7 @@ class Wireframe:
         :param vertexlist: The list of vertices to be added
         """
         for vertex in vertexlist:
-            self.vertices.append(Vertex(vertex))
+            self.vertices.append(Vertex(vertex, self.vertexcolour))
 
     def addedges(self, edgelist):
         """
@@ -62,7 +67,7 @@ class Wireframe:
         :param edgelist: The list of edges to be added
         """
         for (start, stop) in edgelist:
-            self.edges.append(Edge(self.vertices[start], self.vertices[stop]))
+            self.edges.append(Edge(self.vertices[start], self.vertices[stop], self.edgecolour))
 
     def addfaces(self, facelist, facenames=('front', 'right', 'back', 'left', 'top', 'bottom')):
         """
@@ -70,7 +75,7 @@ class Wireframe:
         :param facelist: The list of faces to be added
         """
         for i in range(len(facelist)):
-            self.faces[facenames[i]] = {'face': Face(facelist[i]), 'colour': (0, 0, 0), 'pressed': False}
+            self.faces[facenames[i]] = Face(facelist[i], self.facecolour)
 
     def translate(self, axis, d):
         """
