@@ -46,6 +46,7 @@ class Wireframe:
         self.vertices = []
         self.edges = []
         self.faces = {}
+        self.show = True
         if len(vertices) > 0:
             self.addvertices(vertices)
         if len(edges) > 0:
@@ -59,7 +60,10 @@ class Wireframe:
         :param vertexlist: The list of vertices to be added
         """
         for vertex in vertexlist:
-            self.vertices.append(Vertex(vertex, self.vertexcolour))
+            if type(vertex) == Vertex:
+                self.vertices.append((vertex))
+            else:
+                self.vertices.append(Vertex(vertex, self.vertexcolour))
 
     def addedges(self, edgelist):
         """
@@ -88,13 +92,12 @@ class Wireframe:
             for vertex in self.vertices:
                 setattr(vertex, axis, getattr(vertex, axis) + d)
 
-    def scale(self, centres, scale):
-        """"""
+    def scale(self, centre, scale):
         """ Scale the wireframe from the centre of the screen """
 
         for vertex in self.vertices:
-            vertex.x = centres[0] + scale * (vertex.x - centres[0])
-            vertex.y = centres[1] + scale * (vertex.y - centres[1])
+            vertex.x = centre[0] + scale * (vertex.x - centre[0])
+            vertex.y = centre[1] + scale * (vertex.y - centre[1])
             vertex.z *= scale
 
     def findcentre(self):
@@ -107,32 +110,32 @@ class Wireframe:
 
         return meanx, meany, meanz
 
-    def rotatex(self, centres, radians):
+    def rotatex(self, centre, radians):
         for vertex in self.vertices:
-            y = vertex.y - centres[1]
-            z = vertex.z - centres[2]
+            y = vertex.y - centre[1]
+            z = vertex.z - centre[2]
             d = math.hypot(y, z)
             theta = math.atan2(y, z) + radians
-            vertex.z = centres[2] + d * math.cos(theta)
-            vertex.y = centres[1] + d * math.sin(theta)
+            vertex.z = centre[2] + d * math.cos(theta)
+            vertex.y = centre[1] + d * math.sin(theta)
 
-    def rotatey(self, centres, radians):
+    def rotatey(self, centre, radians):
         for vertex in self.vertices:
-            x = vertex.x - centres[0]
-            z = vertex.z - centres[2]
+            x = vertex.x - centre[0]
+            z = vertex.z - centre[2]
             d = math.hypot(x, z)
             theta = math.atan2(x, z) + radians
-            vertex.z = centres[2] + d * math.cos(theta)
-            vertex.x = centres[0] + d * math.sin(theta)
+            vertex.z = centre[2] + d * math.cos(theta)
+            vertex.x = centre[0] + d * math.sin(theta)
 
-    def rotatez(self, centres, radians):
+    def rotatez(self, centre, radians):
         for vertex in self.vertices:
-            x = vertex.x - centres[0]
-            y = vertex.y - centres[1]
+            x = vertex.x - centre[0]
+            y = vertex.y - centre[1]
             d = math.hypot(y, x)
             theta = math.atan2(y, x) + radians
-            vertex.x = centres[0] + d * math.cos(theta)
-            vertex.y = centres[1] + d * math.sin(theta)
+            vertex.x = centre[0] + d * math.cos(theta)
+            vertex.y = centre[1] + d * math.sin(theta)
 
 if __name__ == "__main__":
     cube_vertices = [(x, y, z) for x in (0, 1) for y in (0, 1) for z in (0, 1)]

@@ -1,5 +1,6 @@
 import random
 import pygame
+import math
 import misc
 import wireframe
 
@@ -22,6 +23,10 @@ VIOLET = (186, 4, 138)
 gridwidth = 50
 gridheight = 50
 margin = 3
+vertexcolour = (255, 255, 255)
+edgecolour = (200, 200, 200)
+vertexRadius = 4
+facecolour = (150, 150, 150)
 
 # Fonts
 FONT = 'Calibri'
@@ -231,12 +236,12 @@ key_to_function = {
     pygame.K_UP: (lambda n: n.translateall('y', -10)),
     # pygame.K_EQUALS: (lambda x: x.scaleAll(1.25)),
     # pygame.K_MINUS:  (lambda x: x.scaleAll( 0.8)),
-    pygame.K_q: (lambda n: n.rotateall('x', 0.1)),
-    pygame.K_w: (lambda n: n.rotateall('x', -0.1)),
-    pygame.K_a: (lambda n: n.rotateall('y', 0.1)),
-    pygame.K_s: (lambda n: n.rotateall('y', -0.1)),
-    pygame.K_z: (lambda n: n.rotateall('z', 0.1)),
-    pygame.K_x: (lambda n: n.rotateall('z', -0.1))}
+    pygame.K_q: (lambda n: n.rotatex((300, 300, 300), 0.1)),
+    pygame.K_w: (lambda n: n.rotatex((300, 300, 300), -0.1)),
+    pygame.K_a: (lambda n: n.rotatey((300, 300, 300), 0.1)),
+    pygame.K_s: (lambda n: n.rotatey((300, 300, 300), -0.1)),
+    pygame.K_z: (lambda n: n.rotatez((300, 300, 300), 0.1)),
+    pygame.K_x: (lambda n: n.rotatez((300, 300, 300), -0.1))}
 
 
 class ProjectionViewer:
@@ -249,6 +254,7 @@ class ProjectionViewer:
         Runs start up
         """
         self.wireframes = {}
+        #x = [[[[]], [[]]]]
         self.screen = pygame.display.set_mode((600, 600))
         self.boardx = checkinput(self.screen, 'How wide would you like the board to be? ', int, startrange=0,
                                  endrange=40)
@@ -258,19 +264,29 @@ class ProjectionViewer:
                                  endrange=5)
         self.mineno = checkinput(self.screen, 'How many mines would you like there to be? ', int, startrange=0,
                                  endrange=(self.boardx * self.boardy))
+        self.vertices = [[[wireframe.Vertex(((x) * 100, (y) * 100, (z) * 100), vertexcolour) for z in range(self.boardz + 1)] for y in range(self.boardy + 1)] for x in range(self.boardx + 1)]
         for y in range(self.boardy):
             for x in range(self.boardx):
                 for z in range(self.boardz):
                     [i, j, k] = [(int(n) + 1) * 100 for n in [y, x, z]]
                     n = wireframe.Wireframe(
-                        [[i, j, k],
-                         [i + 100, j, k],
-                         [i, j - 100, k],
-                         [i + 100, j - 100, k],
-                         [i, j, k + 100],
-                         [i + 100, j, k + 100],
-                         [i, j - 100, k + 100],
-                         [i + 100, j - 100, k + 100]
+                         [
+                             self.vertices[x][y + 1][z],
+                             self.vertices[x + 1][y + 1][z],
+                             self.vertices[x][y][z],
+                             self.vertices[x + 1][y][z],
+                             self.vertices[x][y + 1][z + 1],
+                             self.vertices[x + 1][y + 1][z + 1],
+                             self.vertices[x][y][z + 1],
+                             self.vertices[x + 1][y][z + 1]
+                             #self.vertices[x][y][z],
+                             #self.vertices[x + 1][y][z],
+                             #self.vertices[x][y - 1][z],
+                             #self.vertices[x + 1][y - 1][z],
+                             #self.vertices[x][y][z + 1],
+                             #self.vertices[x + 1][y][z + 1],
+                             #self.vertices[x][y - 1][z + 1],
+                             #self.vertices[x + 1][y - 1][z + 1]
                          ],
                         [(n, n + 4)
                          for n in range(0, 4)] + [(n, n + 1)
@@ -315,11 +331,7 @@ class ProjectionViewer:
         self.displayvertices = True
         self.displayedges = True
         self.displayfaces = True
-        self.displaynumbers = True
-        self.vertexcolour = (255, 255, 255)
-        self.edgecolour = (200, 200, 200)
-        self.vertexRadius = 4
-        facecolour = (150, 150, 150)
+
         for frame in self.wireframes:
             for face in self.wireframes[frame].faces.values():
                 if frame == (100, 100, 100):
@@ -341,6 +353,7 @@ class ProjectionViewer:
         """
         running = True
         temp = ''
+        self.display()
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -348,6 +361,7 @@ class ProjectionViewer:
                 elif event.type == pygame.KEYDOWN:
                     if event.key in key_to_function:
                         key_to_function[event.key](self)
+                    self.display()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     x, y, z = [int(i) for i in input('Which tile would you like to select? ').split()]
                     if self.board[y][x][z]['flagged'] is False:
@@ -355,7 +369,38 @@ class ProjectionViewer:
                             if temp != 'x':
                                 self.board = temp
                     for face in self.wireframes[tuple((i + 1) * 100 for i in (x, y, z))].faces:
-                        self.wireframes[tuple((i + 1) * 100 for i in (x, y, z))].faces[face].colour = CYAN
+                        if [x, y, z] != [0, 0, 0]:
+                            self.wireframes[tuple((i + 1) * 100 for i in (x, y, z))].faces[face].colour = CYAN
+                    flagged = 0
+                    for i in self.board:
+                        for j in i:
+                            for k in j:
+                                if k['flagged'] == True and k['solution'] == 'x':
+                                    flagged += 1
+                    if temp == 'x' or flagged == self.mineno:
+                        self.screen.fill(GREY)
+                        if temp == 'x':
+                            message = 'GAME OVER!'
+                        elif flagged == self.mineno:
+                            message = 'YOU WIN!'
+                        font = pygame.font.SysFont(FONT, 50, True, False)
+                        text = font.render(message, True, BLACK)
+                        pygame.draw.rect(self.screen, GREY,
+                                         (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                          self.height / 2 - pygame.font.Font.size(font, message)[1] / 2,
+                                          pygame.font.Font.size(font, message)[0],
+                                          pygame.font.Font.size(font, message)[1] - 5,
+                                          ))
+                        self.screen.blit(text, (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                                self.height / 2 - pygame.font.Font.size(font, message)[1] / 2))
+                        pygame.display.flip()
+                        while True:
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    running = False
+                                elif (event.type == pygame.KEYDOWN and event.key == 13) or event.type == pygame.MOUSEBUTTONDOWN:
+                                    main()
+                    self.display()
                     """
                     # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
                     # change as the mouse changes, messing up which square is selected
@@ -396,39 +441,8 @@ class ProjectionViewer:
                         # print('button 3')
                     #    self.board = flagsquare(self.board, y, x, z)
                     """
-            flagged = 0
-            for i in self.board:
-                for j in i:
-                    for k in j:
-                        if k['flagged'] == True and k['solution'] == 'x':
-                            flagged += 1
-            self.display()
-            clock.tick(30)
 
-            if temp == 'x' or flagged == self.mineno:
-                self.screen.fill(GREY)
-                if temp == 'x':
-                    message = 'GAME OVER!'
-                elif flagged == self.mineno:
-                    message = 'YOU WIN!'
-                font = pygame.font.SysFont(FONT, 50, True, False)
-                text = font.render(message, True, BLACK)
-                pygame.draw.rect(self.screen, GREY,
-                                 (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                                  self.height / 2 - pygame.font.Font.size(font, message)[1] / 2,
-                                  pygame.font.Font.size(font, message)[0],
-                                  pygame.font.Font.size(font, message)[1] - 5,
-                                  ))
-                self.screen.blit(text, (self.width / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                                        self.height / 2 - pygame.font.Font.size(font, message)[1] / 2))
-                pygame.display.flip()
-                while True:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            running = False
-                        elif (event.type == pygame.KEYDOWN and event.key == 13) or event.type == pygame.MOUSEBUTTONDOWN:
-                            main()
-
+            clock.tick(60)
             pygame.display.flip()
 
     def display(self):
@@ -445,38 +459,52 @@ class ProjectionViewer:
                             reverse=True):
             #if frame[0] == 100 or frame[1] == 100 or frame[2] == 100 or frame[0] == self.boardx * 100 or \
             #                frame[1] == self.boardx * 100 or frame[2] == self.boardx * 100:
-            if self.displayfaces:
+
+
+            if self.displayvertices:
+                #for vertex in range(len(self.wireframes[frame].vertices)):
+                for x in self.vertices:
+                    for y in x:
+                        for vertex in y:
+                            #font = pygame.font.SysFont(FONT, 50, True, False)
+                            #text = font.render(str(vertex), True, RED)
+                            #self.screen.blit(text, (int(vertex.x),
+                            #                        int(vertex.y)))
+                            pygame.draw.circle(self.screen,
+                                               vertexcolour,
+                                               (int(vertex.x),
+                                                int(vertex.y)),
+                                               vertexRadius, 0)
+
+            if (self.displayfaces and self.wireframes[frame].show) or frame == (100, 100, 100):
                 for face in sorted(self.wireframes[frame].faces.values(),
-                                   key=lambda faces: max([vertex.z for vertex in faces.vertices])):
-                    #print(face)
-                    total += 1
+                                 key=lambda faces: max([vertex.z for vertex in faces.vertices])):
+                    # print(face)
+                    # total += 1
                     pygame.draw.polygon(self.screen,
                                         face.colour,
                                         [(vertex.x, vertex.y) for vertex in face.vertices],
                                         0)
-                    font = pygame.font.SysFont(FONT, 50, True, False)
-                    text = font.render(str(self.board[int(frame[1]/100) -1][int(frame[0]/100) -1][int(frame[2]/100) -1]['display']), True, RED)
-                    #self.screen.blit(text, (int(sum([(vertex.x) for vertex in face['face'].vertices]) / len(face['face'].vertices)),
-                    #                       int(sum([(vertex.y) for vertex in face['face'].vertices]) / len(face['face'].vertices))))
-                    self.screen.blit(text, (int(self.wireframes[frame].findcentre()[0]),
-                                           int(self.wireframes[frame].findcentre()[1])))
+                font = pygame.font.SysFont(FONT, 50, True, False)
+                #print(self.board)
+                #print(int(frame[1] / 100) -1, int(frame[0] / 100) - 1, int(frame[2] / 100) - 1)
+                # [[[{'flagged': False, 'pressed': False, 'display': '_', 'solution': 'x', 'coordinates': ['0', '0', '0']}]], [[{'flagged': False, 'pressed': False, 'display': '_', 'solution': 1, 'coordinates': ['0', '1', '0']}]]]
+                message = str(self.board[int(frame[0] / 100) -1][int(frame[1] / 100) - 1][int(frame[2] / 100) - 1]['display'])
+                if str(message) == '0':
+                    self.wireframes[frame].show = False
+                text = font.render(message, True, RED)
+                #self.screen.blit(text, (int(sum([(vertex.x) for vertex in face['face'].vertices]) / len(face['face'].vertices)),
+                #                       int(sum([(vertex.y) for vertex in face['face'].vertices]) / len(face['face'].vertices))))
+                self.screen.blit(text, (int(self.wireframes[frame].findcentre()[0]) - font.size(message)[0] / 2,
+                                        int(self.wireframes[frame].findcentre()[1]) - font.size(message)[1] / 2))
 
-            if self.displayvertices:
-                for vertex in range(len(self.wireframes[frame].vertices)):
-                    # font = pygame.font.SysFont(FONT, 50, True, False)
-                    # text = font.render(str(vertex), True, RED)
-                    # self.screen.blit(text, (int(self.wireframes[frame].vertices[vertex].x),
-                    #                        int(self.wireframes[frame].vertices[vertex].y)))
-                    pygame.draw.circle(self.screen,
-                                       self.vertexcolour,
-                                       (int(self.wireframes[frame].vertices[vertex].x),
-                                        int(self.wireframes[frame].vertices[vertex].y)),
-                                       self.vertexRadius, 0)
-            if self.displayedges:
+            if self.displayedges and self.wireframes[frame].show:
                 for edge in self.wireframes[frame].edges:
-                    pygame.draw.aaline(self.screen, self.edgecolour, (edge.start.x, edge.start.y),
+                    pygame.draw.aaline(self.screen, edgecolour, (edge.start.x, edge.start.y),
                                        (edge.stop.x, edge.stop.y), 1)
         # print(total)
+        pygame.display.flip()
+
 
     def translateall(self, axis, d):
         """
@@ -484,8 +512,46 @@ class ProjectionViewer:
         :param axis: The axis on which the wireframes are translated
         :param d: By how many units they are translated
         """
-        for frame in self.wireframes:
-            self.wireframes[frame].translate(axis, d)
+        for x in self.vertices:
+            for y in x:
+                for vertex in y:
+                    setattr(vertex, axis, getattr(vertex, axis) + d)
+        #for frame in self.wireframes:
+        #    self.wireframes[frame].translate(axis, d)
+
+
+    def rotatex(self, centre, radians):
+        for x in self.vertices:
+            for y in x:
+                for vertex in y:
+                    y = vertex.y - centre[1]
+                    z = vertex.z - centre[2]
+                    d = math.hypot(y, z)
+                    theta = math.atan2(y, z) + radians
+                    vertex.z = centre[2] + d * math.cos(theta)
+                    vertex.y = centre[1] + d * math.sin(theta)
+
+    def rotatey(self, centre, radians):
+        for x in self.vertices:
+            for y in x:
+                for vertex in y:
+                    x = vertex.x - centre[0]
+                    z = vertex.z - centre[2]
+                    d = math.hypot(x, z)
+                    theta = math.atan2(x, z) + radians
+                    vertex.z = centre[2] + d * math.cos(theta)
+                    vertex.x = centre[0] + d * math.sin(theta)
+
+    def rotatez(self, centre, radians):
+        for x in self.vertices:
+            for y in x:
+                for vertex in y:
+                    x = vertex.x - centre[0]
+                    y = vertex.y - centre[1]
+                    d = math.hypot(y, x)
+                    theta = math.atan2(y, x) + radians
+                    vertex.x = centre[0] + d * math.cos(theta)
+                    vertex.y = centre[1] + d * math.sin(theta)
 
     def rotateall(self, axis, theta):
         """
@@ -496,8 +562,8 @@ class ProjectionViewer:
         for frame in self.wireframes:
             # centre = self.wireframes[frame].findcentre()
             centre = (300, 300, 300)
-            getattr(self.wireframes[frame], 'rotate' + axis)(centre, theta)
-
+            #rotates = {rotatex}
+            #getattr(self.wireframes[frame], 'rotate' + axis)(centre, theta)
 
 clock = pygame.time.Clock()
 pygame.init()
