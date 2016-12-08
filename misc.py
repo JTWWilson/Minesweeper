@@ -7,10 +7,10 @@
 # A program to get user input, allowing backspace etc
 # shown in a box in the middle of the screen
 # Called by:
-# import inputbox
-# answer = inputbox.ask(screen, "Your name")
+# import misc
+# answer = misc.ask(screen, "Your name")
 #
-# Only near the center of the screen is blitted to
+# Only near the centre of the screen is blitted to
 
 # Updated by Jacob Wilson 22/5/16 into python 3.5 and adapted for my own purpose
 
@@ -72,10 +72,10 @@ def ask(screen, question):
     return ''.join(current_string)
 
 
-# def main():
-#    screen = pygame.display.set_mode((320, 240))
-#    print(ask(screen, "Name") + " was entered")
+if __name__ == '__main__':
+    screen = pygame.display.set_mode((320, 240))
+    name = ask(screen, "What is your name")
+    while not all(not i in name for i in ['/', ';', '#', ',', '.']) is True:
+        name = ask(screen, "Special characters cannot be inlcuded in a name.")
+    print("'{}' was entered".format(name))
 
-
-# while True:
-#    main()
