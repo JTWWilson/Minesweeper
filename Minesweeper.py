@@ -2,6 +2,9 @@ import random
 import pygame
 import misc
 
+pygame.init()
+screen = pygame.display.set_mode((600, 250))
+
 # Colours
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -20,12 +23,14 @@ margin = 3
 # Fonts
 FONT = 'Calibri'
 TEXTSIZE = 70
+# Set title of screen
+pygame.display.set_caption("Minesweeper")
 # Images
-mineload = pygame.image.load('Images/Mine.bmp')
-tileload = pygame.image.load('Images/Tile.bmp')
-flagload = pygame.image.load('Images/Flag.bmp')
-wronglyflaggedload = pygame.image.load('Images/WronglyFlagged.bmp')
-
+mine = pygame.image.load('Images/Mine.bmp').convert()
+tile = pygame.image.load('Images/Tile.bmp').convert()
+pressed = pygame.image.load('Images/Pressed.bmp').convert()
+flag = pygame.image.load('Images/Flag.bmp').convert()
+wronglyflagged = pygame.image.load('Images/WronglyFlagged.bmp').convert()
 
 
 def createboard(x, y, mines):
@@ -36,15 +41,10 @@ def createboard(x, y, mines):
     :param mines: The list of all of the mines to be placed into the board
     :return: Returns the created board
     """
-    board = []
-    for i in range(0, y):
-        row = []
-        for j in range(0, x):
-            if [j, i] in mines:
-                row.append({'display': '_', 'solution': 'x', 'flagged': False, 'pressed': False})
-            else:
-                row.append({'display': '_', 'solution': '', 'flagged': False, 'pressed': False})
-        board.append(row)
+    board = [[{'display': '_', 'solution': 'x', 'flagged': False, 'pressed': False} if [i, j] in mines
+              else {'display': '_', 'solution': '', 'flagged': False, 'pressed': False}
+              for j in range(y)]
+             for i in range(x)]
     return board
 
 
@@ -55,17 +55,6 @@ def choose(board, y, x):
     :param y: The y coordinate of the user's selection
     :param x: The x coordinate of the user's selection
     :return: The board state after their selection or just 'x' if the user hit a bomb
-    """
-    """
-    field = ''
-    for i in board:
-        for j in i:
-            if j[0] == 'x' or j[0] == '_':
-                field += '_ '
-            else:
-                field += str(j[0]) + ' '
-        field += '\n'
-    print(field)
     """
     count = findadjacent(board, x, y, 'x')
     # Works out how many bombs are adjacent to the square
@@ -133,7 +122,7 @@ def flagsquare(board, x, y):
     :return: The board's new state
     """
     if board[x][y]['display'] == '_':
-        if board[x][y]['flagged'] == True:
+        if board[x][y]['flagged'] is True:
             board[x][y]['flagged'] = False
         else:
             board[x][y]['flagged'] = True
@@ -189,7 +178,12 @@ def showboard(screen, board, width, height, layer='display'):
         colours = tuple(([i + 100 if i < 155 else i - 50 if i > 50 else i for i in colour] for colour in colours))
     for row in range(height):
         for column in range(width):
-            if board[row][column][layer] == 'x':
+            if layer == 'display' and board[row][column]['pressed'] is True:
+                screen.blit(pressed, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
+                                       gridwidth,
+                                       gridheight])
+            elif board[row][column][layer] == 'x':
                 if layer == 'solution':
                     screen.blit(mine, [(margin + gridwidth) * column,
                                        (margin + gridheight) * row,
@@ -229,7 +223,6 @@ def main():
     """
     The main function with the game loop
     """
-
     running = True
     clock = pygame.time.Clock()
     colours = [GREY, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, WHITE]
@@ -247,17 +240,17 @@ def main():
     while running:
         temp = ''
         for event in pygame.event.get():
-            #print(event)
+            # print(event)
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
                 # change as the mouse changes, messing up which square is selected
-                pos = tuple((int(i) for i in pygame.mouse.get_pos()))
+                pos = tuple((int(i) for i in event.pos))
                 # Change the x/y screen coordinates to grid coordinates
                 column = abs(pos[0] - margin) // (gridwidth + margin)
                 row = abs(pos[1] - margin) // (gridheight + margin)
-                if event.button == 1:
+                if event.button == 1 and board[row][column]['flagged'] is False:
                     board[row][column]['pressed'] = True
                     pygame.draw.rect(screen, GREY,
                                      ((margin + gridwidth) * column,
@@ -266,8 +259,15 @@ def main():
                                       gridheight + margin,
                                       ))
                     pygame.display.flip()
-            #elif event.type == pygame.MOUSEBUTTONUP:
-                #if event.button == 1:
+            elif event.type == pygame.MOUSEBUTTONUP:
+                """# User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
+                # change as the mouse changes, messing up which square is selected
+                pos = tuple((int(i) for i in event.pos))
+                # Change the x/y screen coordinates to grid coordinates
+                column = abs(pos[0] - margin) // (gridwidth + margin)
+                row = abs(pos[1] - margin) // (gridheight + margin)"""
+                if event.button == 1:
+                    board[row][column]['pressed'] = False
                     if board[row][column]['flagged'] == False:
                         temp = choose(board, row, column)
                         if temp != 'x':
@@ -281,37 +281,6 @@ def main():
                 if j['flagged'] == True and j['solution'] == 'x':
                     flagged += 1
         if temp == 'x' or flagged == mineno:
-            """
-            for row in range(0, boardy):
-                for column in range(0, boardx):
-                    if board[row][column][0] == 'x':
-                        screen.blit(mine, [(margin + gridwidth) * column + margin * 2,
-                                           (margin + gridheight) * row + margin * 3,
-                                           gridwidth,
-                                           gridheight])
-                    else:
-                        if board[row][column][0] == '_':
-                            screen.blit(tile, [(margin + gridwidth) * column + margin * 2,
-                                               (margin + gridheight) * row + margin * 3,
-                                               gridwidth,
-                                               gridheight])
-                        else:
-                            font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-                            text = font.render(str(board[row][column][1]), True, tuple(
-                                i + 100 if i < 155 else i - 50 if i > 50 else i for i in
-                                colours[board[row][column][1]]))
-                            screen.blit(text, [(margin + gridwidth) * column + gridwidth / 3,
-                                               (margin + gridheight) * row,
-                                               gridwidth,
-                                               gridheight])
-                    if len(board[row][column]) == 3:
-                        screen.blit(flag, [(margin + gridwidth) * column + margin * 2,
-                                           (margin + gridheight) * row + margin * 3,
-                                           gridwidth,
-                                           gridheight])
-
-            pygame.display.flip()
-            """
             screen.fill(GREY)
             showboard(screen, board, boardy, boardx, 'solution')
             if temp == 'x':
@@ -337,25 +306,16 @@ def main():
                     elif event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == 13):
                         main()
         showboard(screen, board, boardy, boardx)
-        clock.tick(80)
+        clock.tick(60)
         pygame.display.flip()
     pygame.quit()
 
 
-pygame.init()
-screen = pygame.display.set_mode((600, 250))
 boardx = checkinput(screen, 'How wide would you like the board to be? ', int, startrange=0, endrange=40)
 boardy = checkinput(screen, 'How long would you like the board to be? ', int, startrange=0, endrange=15)
-mineno = \
-    checkinput(screen, 'How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
+mineno = checkinput(screen, 'How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
 window_size = [(gridwidth * boardx) + (margin * boardx + 4),
                (gridheight * boardy) + (margin * boardy + 4)]
 screen = pygame.display.set_mode(window_size)
-mine = mineload.convert()
-tile = tileload.convert()
-flag = flagload.convert()
-wronglyflagged = wronglyflaggedload.convert()
-# Set title of screen
-pygame.display.set_caption("Minesweeper")
 
 main()
