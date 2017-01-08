@@ -179,42 +179,43 @@ def showboard(screen, board, width, height, layer='display'):
     for row in range(height):
         for column in range(width):
             if layer == 'display' and board[row][column]['pressed'] is True:
-                screen.blit(pressed, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                screen.blit(pressed, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
             elif board[row][column][layer] == 'x':
                 if layer == 'solution':
-                    screen.blit(mine, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                    screen.blit(mine, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
                 elif layer == 'display':
-                    screen.blit(tile, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                    screen.blit(tile, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
             elif board[row][column][layer] == '_' and layer == 'display':
-                    screen.blit(tile, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                    screen.blit(tile, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
             else:
+                if board[row][column][layer] == 0: continue
                 font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
                 text = font.render(str(board[row][column][layer]), True, colours[board[row][column][layer]])
-                screen.blit(text, [(margin + gridwidth) * column + margin * 2,
-                                   (margin + gridheight) * row - margin * 2,
+                screen.blit(text, [(margin + gridwidth) * row + margin * 2,
+                                   (margin + gridheight) * column - margin * 2,
                                    gridwidth,
                                    gridheight])
             if board[row][column]['flagged'] == True:
                 if layer == 'display' or (layer == 'solution' and board[row][column]['solution'] == 'x'):
-                    screen.blit(flag, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                    screen.blit(flag, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
                 elif layer == 'solution' and board[row][column]['solution'] != 'x':
-                    screen.blit(wronglyflagged, [(margin + gridwidth) * column,
-                                       (margin + gridheight) * row,
+                    screen.blit(wronglyflagged, [(margin + gridwidth) * row,
+                                       (margin + gridheight) * column,
                                        gridwidth,
                                        gridheight])
 
@@ -248,17 +249,26 @@ def main():
                 # change as the mouse changes, messing up which square is selected
                 pos = tuple((int(i) for i in event.pos))
                 # Change the x/y screen coordinates to grid coordinates
-                column = abs(pos[0] - margin) // (gridwidth + margin)
-                row = abs(pos[1] - margin) // (gridheight + margin)
-                if event.button == 1 and board[row][column]['flagged'] is False:
+                row = abs(pos[0] - margin) // (gridwidth + margin)
+                column = abs(pos[1] - margin) // (gridheight + margin)
+                if event.button == 1 and board[row][column]['flagged'] is False and board[row][column]['display'] == '_':
                     board[row][column]['pressed'] = True
-                    pygame.draw.rect(screen, GREY,
-                                     ((margin + gridwidth) * column,
-                                      (margin + gridheight) * row,
-                                      gridwidth + margin,
-                                      gridheight + margin,
-                                      ))
-                    pygame.display.flip()
+                    screen.blit(pressed, [(margin + gridwidth) * row,
+                                          (margin + gridheight) * column,
+                                          gridwidth,
+                                          gridheight])
+                    pygame.display.update([(margin + gridwidth) * row,
+                                           (margin + gridheight) * column,
+                                           gridwidth,
+                                           gridheight])
+                    continue
+                    #pygame.draw.rect(screen, GREY,
+                    #                 ((margin + gridwidth) * column,
+                    #                  (margin + gridheight) * row,
+                    #                  gridwidth + margin,
+                    #                  gridheight + margin,
+                    #                  ))
+                    #pygame.display.flip()
             elif event.type == pygame.MOUSEBUTTONUP:
                 """# User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
                 # change as the mouse changes, messing up which square is selected
@@ -274,6 +284,9 @@ def main():
                             board = temp
                 elif event.button == 3:
                     board = flagsquare(board, row, column)
+                showboard(screen, board, boardy, boardx)
+                pygame.display.flip()
+
         screen.fill(GREY)
         flagged = 0
         for i in board:
@@ -305,9 +318,9 @@ def main():
                         quit()
                     elif event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == 13):
                         main()
-        showboard(screen, board, boardy, boardx)
+
         clock.tick(60)
-        pygame.display.flip()
+
     pygame.quit()
 
 
