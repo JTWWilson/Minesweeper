@@ -1,6 +1,6 @@
-import random
+from random import randrange
 import pygame
-import misc
+import pygame_input
 
 pygame.init()
 screen = pygame.display.set_mode((600, 250))
@@ -31,9 +31,10 @@ tile = pygame.image.load('Images/Tile.bmp').convert()
 pressed = pygame.image.load('Images/Pressed.bmp').convert()
 flag = pygame.image.load('Images/Flag.bmp').convert()
 wronglyflagged = pygame.image.load('Images/WronglyFlagged.bmp').convert()
+background = pygame.image.load('Images/background.png').convert()
 
 
-def createboard(x, y, mines):
+def createboard(x, y, mines=()):
     """
     Creates the board on which the game is based
     :param x: How wide the board must be
@@ -41,7 +42,7 @@ def createboard(x, y, mines):
     :param mines: The list of all of the mines to be placed into the board
     :return: Returns the created board
     """
-    board = [[{'display': '_', 'solution': 'x', 'flagged': False, 'pressed': False} if [i, j] in mines
+    board = [[{'display': '_', 'solution': 'x', 'flagged': False, 'pressed': False} if (i, j) in mines
               else {'display': '_', 'solution': '', 'flagged': False, 'pressed': False}
               for j in range(y)]
              for i in range(x)]
@@ -129,11 +130,12 @@ def flagsquare(board, x, y):
     return board
 
 
-def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=float('inf')):
+def check_input(screen, question, typecheck, startrange=float('-inf'), endrange=float('inf')):
     """
     It takes in a question to ask the user, asks it, checks if it is a valid input
     (if not they must re-enter it) and returns their final answer
-    :parameter question: the question that is posed to the user
+    :parameter screen: The screen onto which the question is shown
+    :parameter question: the question that is positioned to the user
     :parameter typecheck: the data type that the user is required to enter
     :keyword startrange: the lower end of the range within which, if a float or integer is required, the user's input
     must be
@@ -141,33 +143,38 @@ def checkinput(screen, question, typecheck, startrange=float('-inf'), endrange=f
     conform to
     :returns answer: the first value that the user has inputted that conforms to all of the requirements
     """
-    # set valid to false so that the while loop actually runs
+    # Set valid to false so that the while loop actually runs
     valid = False
-    # repeat the checking process until the answer is acceptable
+    # Repeat the check_ing process until the answer is acceptable
     answer = ''
-    while valid is False:
-        # try the following code, if there is an exception go to that except statement
+    subtitle = ''
+    while not valid:
+        # Try the following code, if there is an exception go to that except statement
         try:
             if typecheck == 'yesno':
-                answer = {'y': True, 'yes': True, 'n': False, 'no': False}[misc.ask(screen, question).lower()]
+                answer = {'y': True, 'yes': True, 'n': False, 'no': False}[
+                    pygame_input.ask(screen, question, subtitle).lower()]
                 valid = True
             else:
-                # ask the user the question then try to force the answer into the required data type
-                answer = typecheck(misc.ask(screen, question))
-                # check if the user's input is within the required bounds if it is a float or integer
+                # Ask the user the question then try to force the answer into the required data type
+                answer = typecheck(pygame_input.ask(screen, question, subtitle))
+                # Check if the user's input is within the required bounds if it is a float or integer
                 if (typecheck == int or typecheck == float) and (answer < startrange or answer > endrange):
-                    # ask the user the question again, explaining what range it should be in
-                    print('Input out of required range (%s to %s)' % (startrange, endrange))
-                # if the user's input has passed all of the hurdles
+                    # Ask the user the question again, explaining what range it should be in
+                    subtitle = 'Input out of required range (%s to %s)' % (startrange, endrange)
+                    # print('Input out of required range (%s to %s)' % (startrange, endrange))
+                # If the user's input has passed all of the hurdles
                 else:
-                    # let the input through
+                    # Let the input through
                     valid = True
-        # if a value error occurs, explain that it occurred and tell them to try again
+        # If a value error occurs, explain that it occurred and tell them to try again
         except ValueError:
-            print('ValueError, try again')
-        # explain that they must input yes or no
+            subtitle = 'Input is of the wrong data type, try again'
+            # print('ValueError, try again')
+        # If the input was not 'yes' or 'no', explain that they must input yes or no
         except KeyError:
-            print('Input is not Yes or No')
+            subtitle = 'Input is not Yes or No'
+            # print('Input is not Yes or No')
             # Restart because of the exception
     return answer
 
@@ -179,65 +186,147 @@ def showboard(screen, board, width, height, layer='display'):
     for row in range(height):
         for column in range(width):
             if layer == 'display' and board[row][column]['pressed'] is True:
-                screen.blit(pressed, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
-                                       gridwidth,
-                                       gridheight])
+                screen.blit(pressed, [(margin + gridwidth) * column,
+                                      (margin + gridheight) * row,
+                                      gridwidth,
+                                      gridheight])
             elif board[row][column][layer] == 'x':
                 if layer == 'solution':
-                    screen.blit(mine, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
+                    screen.blit(mine, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
                                        gridwidth,
                                        gridheight])
                 elif layer == 'display':
-                    screen.blit(tile, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
+                    screen.blit(tile, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
                                        gridwidth,
                                        gridheight])
             elif board[row][column][layer] == '_' and layer == 'display':
-                    screen.blit(tile, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
-                                       gridwidth,
-                                       gridheight])
-            else:
-                if board[row][column][layer] == 0: continue
-                font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
-                text = font.render(str(board[row][column][layer]), True, colours[board[row][column][layer]])
-                screen.blit(text, [(margin + gridwidth) * row + margin * 2,
-                                   (margin + gridheight) * column - margin * 2,
+                screen.blit(tile, [(margin + gridwidth) * column,
+                                   (margin + gridheight) * row,
                                    gridwidth,
                                    gridheight])
-            if board[row][column]['flagged'] == True:
+            else:
+                font = pygame.font.SysFont(FONT, TEXTSIZE, True, False)
+                text = font.render(str(board[row][column][layer]), True, colours[board[row][column][layer]])
+                screen.blit(text, [(margin + gridwidth) * column + margin * 2,
+                                   (margin + gridheight) * row - margin * 2,
+                                   gridwidth,
+                                   gridheight])
+            if board[row][column]['flagged'] is True:
                 if layer == 'display' or (layer == 'solution' and board[row][column]['solution'] == 'x'):
-                    screen.blit(flag, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
+                    screen.blit(flag, [(margin + gridwidth) * column,
+                                       (margin + gridheight) * row,
                                        gridwidth,
                                        gridheight])
                 elif layer == 'solution' and board[row][column]['solution'] != 'x':
-                    screen.blit(wronglyflagged, [(margin + gridwidth) * row,
-                                       (margin + gridheight) * column,
-                                       gridwidth,
-                                       gridheight])
+                    screen.blit(wronglyflagged, [(margin + gridwidth) * column,
+                                                 (margin + gridheight) * row,
+                                                 gridwidth,
+                                                 gridheight])
 
 
-def main():
+def menu():
+    """
+    The main menu for the program
+    """
+    # Show the main menu background
+    pygame.display.set_mode((530, 560))
+    screen.fill(WHITE)
+    screen.blit(background,
+                [screen.get_width() / 2 - background.get_width() / 2,
+                 0])
+    # Default options for playing the game
+    x, y, mine_no = 10, 10, 10
+    # Main program loop
+    while True:
+        # Listen for any key-presses, mouse-clicks etc. performed by the user
+        for event in pygame.event.get():
+            # If the user has clicked exit
+            if event.type == pygame.QUIT:
+                # Exit the game and the program
+                pygame.quit()
+                quit()
+            # If the user has clicked the mouse
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Record the position of the press
+                position = pygame.mouse.get_pos()
+                # Test if they clicked 'Play Game'
+                if 161 <= position[0] <= 378 and 109 <= position[1] <= 177:
+                    # Run the main game
+                    play_game(x, y, mine_no)
+                    # Show the background again
+                    pygame.display.set_mode((530, 560))
+                    screen.fill(WHITE)
+                    screen.blit(background,
+                                [screen.get_width() / 2 - background.get_width() / 2,
+                                 0])
+                # If they pressed the 'Settings' button
+                elif 161 <= position[0] <= 378 and 226 <= position[1] <= 295:
+                    # Enlarge the screen
+                    pygame.display.set_mode((530, 560))
+                    screen.fill(WHITE)
+                    # Set options to the newly-updated settings
+                    x, y, mine_no = set_settings()
+                    # Shown the background again
+                    pygame.display.set_mode((530, 560))
+                    screen.fill(WHITE)
+                    screen.blit(background,
+                                [screen.get_width() / 2 - background.get_width() / 2,
+                                 0])
+                # If they pressed the 'Quit' button
+                elif 161 <= position[0] <= 378 and 347 <= position[1] <= 416:
+                    # End the program
+                    pygame.quit()
+                    quit()
+        pygame.display.flip()
+
+
+def set_settings():
+    """
+    Change the settings
+    :return: The new settings
+    """
+    # Ask the user for the new value of each of the settings
+    x = check_input(screen, 'How wide would you like the board to be? ', int, startrange=2, endrange=40)
+    y = check_input(screen, 'How long would you like the board to be? ', int, startrange=2, endrange=15)
+    mine_no = check_input(
+        screen, 'How many mines would you like there to be? ', int, startrange=0,
+        endrange=(x * y) - 1)
+    return x, y, mine_no
+
+
+def play_game(boardx, boardy, mine_no):
     """
     The main function with the game loop
     """
+    screen_size = [(gridwidth * boardy) + (margin * boardy + 4),
+                   (gridheight * boardx) + (margin * boardx + 4)]
+    screen = pygame.display.set_mode(screen_size)
     running = True
     clock = pygame.time.Clock()
-    colours = [GREY, BLUE, GREEN, RED, DARKBLUE, CRIMSON, CYAN, VIOLET, WHITE]
-    mines = []
-    coords = []
-    for i in range(mineno):
-        coords = [random.randrange(0, boardx), random.randrange(0, boardy)]
-        while coords in mines:
-            coords = [random.randrange(0, boardx), random.randrange(0, boardy)]
-        mines.append(coords)
-    board = createboard(boardx, boardy, mines)
-    for i in range(0, len(board)):
-        for j in range(0, len(board[i])):
-            board[i][j]['solution'] = findadjacent(board, j, i, 'x')
+    def create_unique_list(number, blacklist=set()):
+        """
+        Local nested generator function that creates a unique list of coordinates for the bandits/chests
+        :parameter number: Length of the list that is being created
+        :keyword blacklist: Coordinates that are already filled
+        :yield coordinates: Yields the next coordinate pair in the list
+        """
+
+        # Repeat the set number of times
+        for i in range(number):
+            # Generate a random coordinate pair within the bounds of the board
+            coordinates = (randrange(0, boardx), randrange(0, boardy))
+            # While the coordinates are already filled
+            while coordinates in blacklist:
+                # Set the coordinates to a new random location
+                coordinates = (randrange(0, boardx), randrange(0, boardy))
+            # Pass the coordinates out of the generator
+            yield coordinates
+            # Add the coordinates to the list of occupied tiles
+            blacklist.add(coordinates)
+    row = None
+    board = createboard(boardx, boardy)
     while running:
         temp = ''
         for event in pygame.event.get():
@@ -249,26 +338,28 @@ def main():
                 # change as the mouse changes, messing up which square is selected
                 pos = tuple((int(i) for i in event.pos))
                 # Change the x/y screen coordinates to grid coordinates
-                row = abs(pos[0] - margin) // (gridwidth + margin)
-                column = abs(pos[1] - margin) // (gridheight + margin)
-                if event.button == 1 and board[row][column]['flagged'] is False and board[row][column]['display'] == '_':
+                column = abs(pos[0] - margin) // (gridwidth + margin)
+                row = abs(pos[1] - margin) // (gridheight + margin)
+                bombs = 0
+                for i in board:
+                    for j in i:
+                        if j['solution'] == 'x':
+                            bombs += 1
+                if bombs == 0:
+                    mines = set(create_unique_list(mine_no, {(row, column)}))
+                    board = createboard(boardx, boardy, mines)
+                    for i in range(0, len(board)):
+                        for j in range(0, len(board[i])):
+                            board[i][j]['solution'] = findadjacent(board, j, i, 'x')
+                if event.button == 1 and board[row][column]['flagged'] is False:
                     board[row][column]['pressed'] = True
-                    screen.blit(pressed, [(margin + gridwidth) * row,
-                                          (margin + gridheight) * column,
-                                          gridwidth,
-                                          gridheight])
-                    pygame.display.update([(margin + gridwidth) * row,
-                                           (margin + gridheight) * column,
-                                           gridwidth,
-                                           gridheight])
-                    continue
-                    #pygame.draw.rect(screen, GREY,
-                    #                 ((margin + gridwidth) * column,
-                    #                  (margin + gridheight) * row,
-                    #                  gridwidth + margin,
-                    #                  gridheight + margin,
-                    #                  ))
-                    #pygame.display.flip()
+                    pygame.draw.rect(screen, GREY,
+                                     ((margin + gridwidth) * column,
+                                      (margin + gridheight) * row,
+                                      gridwidth + margin,
+                                      gridheight + margin,
+                                      ))
+                    pygame.display.flip()
             elif event.type == pygame.MOUSEBUTTONUP:
                 """# User clicks the mouse. Get the position + Deep copy it into an integer not a variable or it will
                 # change as the mouse changes, messing up which square is selected
@@ -276,59 +367,49 @@ def main():
                 # Change the x/y screen coordinates to grid coordinates
                 column = abs(pos[0] - margin) // (gridwidth + margin)
                 row = abs(pos[1] - margin) // (gridheight + margin)"""
-                if event.button == 1:
-                    board[row][column]['pressed'] = False
-                    if board[row][column]['flagged'] == False:
-                        temp = choose(board, row, column)
-                        if temp != 'x':
-                            board = temp
-                elif event.button == 3:
-                    board = flagsquare(board, row, column)
-                showboard(screen, board, boardy, boardx)
-                pygame.display.flip()
-
+                if row is not None:
+                    if event.button == 1:
+                        board[row][column]['pressed'] = False
+                        if board[row][column]['flagged'] is False:
+                            temp = choose(board, row, column)
+                            if temp != 'x':
+                                board = temp
+                    elif event.button == 3:
+                        board = flagsquare(board, row, column)
+                flagged = 0
+                for i in board:
+                    for j in i:
+                        if j['flagged'] == True and j['solution'] == 'x':
+                            flagged += 1
+                if temp == 'x' or flagged == mine_no:
+                    screen.fill(GREY)
+                    showboard(screen, board, boardy, boardx, 'solution')
+                    if temp == 'x':
+                        message = 'GAME OVER!'
+                    elif flagged == mine_no:
+                        message = 'YOU WIN!'
+                    font = pygame.font.SysFont(FONT, 50, True, False)
+                    text = font.render(message, True, BLACK)
+                    pygame.draw.rect(screen, GREY,
+                                     (screen_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                      screen_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2,
+                                      pygame.font.Font.size(font, message)[0],
+                                      pygame.font.Font.size(font, message)[1] - 5,
+                                      ))
+                    screen.blit(text, (screen_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
+                                       screen_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2))
+                    pygame.display.flip()
+                    while True:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                quit()
+                            elif event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == 13):
+                                return
         screen.fill(GREY)
-        flagged = 0
-        for i in board:
-            for j in i:
-                if j['flagged'] == True and j['solution'] == 'x':
-                    flagged += 1
-        if temp == 'x' or flagged == mineno:
-            screen.fill(GREY)
-            showboard(screen, board, boardy, boardx, 'solution')
-            if temp == 'x':
-                message = 'GAME OVER!'
-            elif flagged == mineno:
-                message = 'YOU WIN!'
-            font = pygame.font.SysFont(FONT, 50, True, False)
-            text = font.render(message, True, BLACK)
-            pygame.draw.rect(screen, GREY,
-                             (window_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                              window_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2,
-                              pygame.font.Font.size(font, message)[0],
-                              pygame.font.Font.size(font, message)[1] - 5,
-                              ))
-            screen.blit(text, (window_size[0] / 2 - pygame.font.Font.size(font, message)[0] / 2,
-                               window_size[1] / 2 - pygame.font.Font.size(font, message)[1] / 2))
-            pygame.display.flip()
-            while True:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-                    elif event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key == 13):
-                        main()
-
+        showboard(screen, board, boardy, boardx)
         clock.tick(60)
+        pygame.display.flip()
 
-    pygame.quit()
 
-
-boardx = checkinput(screen, 'How wide would you like the board to be? ', int, startrange=0, endrange=40)
-boardy = checkinput(screen, 'How long would you like the board to be? ', int, startrange=0, endrange=15)
-mineno = checkinput(screen, 'How many mines would you like there to be? ', int, startrange=0, endrange=(boardx * boardy))
-window_size = [(gridwidth * boardx) + (margin * boardx + 4),
-               (gridheight * boardy) + (margin * boardy + 4)]
-screen = pygame.display.set_mode(window_size)
-
-main()
+menu()
